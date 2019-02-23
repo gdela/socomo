@@ -1,0 +1,43 @@
+{
+  "name": "socomo",
+  "version": "2.0.0",
+  "description": "SoCoMo visualizer single-page app",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "eslint": "^5.12.1",
+    "gulp": "^4.0.0",
+    "gulp-clean-css": "^4.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-eslint": "^5.0.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-stylelint": "^8.0.0",
+    "gulp-uglify-es": "^1.0.4",
+    "stylelint": "^9.10.1",
+    "stylelint-config-standard": "^18.2.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es6": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 6
+    },
+    "rules": {
+      "indent": ["error", "tab"],
+      "linebreak-style": ["error", "windows"],
+      "quotes": ["error", "single"],
+      "semi": ["error", "always"]
+    }
+  },
+  "stylelint": {
+    "extends": "stylelint-config-standard",
+	"rules": {
+	  "indentation": "tab",
+	  "color-hex-length": "long"
+	}
+  }
+}

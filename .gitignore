@@ -1,0 +1,30 @@
+# IntelliJ: user-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/contentModel.xml
+
+# IntelliJ: Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# IntelliJ: due to Maven auto-import
+.idea/modules
+.idea/modules.xml
+.idea/*.iml
+
+# Maven & Npm
+target/
+node/
+node_modules/
+
+# Project Specific
+/catfood/
+/debug.log
