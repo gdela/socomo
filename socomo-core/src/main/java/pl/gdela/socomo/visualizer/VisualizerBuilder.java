@@ -60,51 +60,61 @@ public class VisualizerBuilder {
 		}
 	}
 
-	private List<Asset> ownAssets(File file) throws IOException {
-		@SuppressWarnings("unchecked")
-		Collection<File> assetFiles = listFiles(ownAssetsLocation(), new String[]{"js", "css"}, false);
-		List<Asset> assets = new ArrayList<>();
-		for (File assetFile : assetFiles) {
-			String extension = getExtension(assetFile.getName());
-			if (extension.equals("css")) {
-				assets.add(style(shortPath(file, assetFile)));
-			}
-			if (extension.equals("js")) {
-				assets.add(script(shortPath(file, assetFile)));
-			}
+	private List<Asset> ownAssets(File visualizerFile) throws IOException {
+		BuilderProperties props = BuilderProperties.read();
+		if (props.socomoVersion.contains("SNAPSHOT")) {
+			log.info("snapshot build of socomo discovered");
+			return localOwnAssets(props.assetsLocation, visualizerFile);
+		} else {
+			log.debug("packed release of socomo discovered");
+			return remoteOwnAssets(props.socomoVersion);
 		}
+	}
+
+	private List<Asset> remoteOwnAssets(String socomoVersion) {
+		List<Asset> assets = new ArrayList<>();
+		String baseUrl = "https://cdn.jsdelivr.net/gh/gdela/socomo@" + socomoVersion;
+		assets.add(script(baseUrl + "/dist/bundle.min.js"));
+		assets.add(style(baseUrl + "/dist/bundle.min.css"));
 		return assets;
 	}
 
-	private File ownAssetsLocation() throws IOException {
-		URL url = getClass().getResource("builder.properties");
-		Properties properties = new Properties();
-		try (InputStream propertiesStream = url.openStream()) {
-			properties.load(propertiesStream);
-		}
-
-		File assetsLocation;
-		if (url.getProtocol().equals("file")) {
-			log.info("unpacked build of socomo discovered");
-			assetsLocation = new File(url.getFile()).getParentFile();
-		}
-		else if (!properties.getProperty("socomo-version").contains("SNAPSHOT")) {
-			log.debug("packed release of socomo discovered");
-			throw new UnsupportedOperationException("using non-snapshot socomo not yet implemented");
-		}
-		else {
-			log.info("snapshot build of socomo discovered");
-			File root = new File(properties.getProperty("snapshot-assets-root"));
-			assetsLocation = new File(root, getClass().getPackage().getName().replace('.', '/'));
-		}
+	private List<Asset> localOwnAssets(File assetsLocation, File visualizerFile) {
 		log.info("using assets from {}", assetsLocation);
-
 		if (!assetsLocation.isDirectory()) {
 			String message = "snapshot assets directory not found: ";
 			message += "either use released version of socomo, or build snapshot version of socomo yourself";
 			throw new IllegalStateException(message);
 		}
-		return assetsLocation;
+		Collection<File> assetFiles = listFiles(assetsLocation, new String[]{"js", "css"}, false);
+		List<Asset> assets = new ArrayList<>();
+		for (File assetFile : assetFiles) {
+			String extension = getExtension(assetFile.getName());
+			if (extension.equals("js")) {
+				assets.add(script(shortPath(visualizerFile, assetFile)));
+			}
+			if (extension.equals("css")) {
+				assets.add(style(shortPath(visualizerFile, assetFile)));
+			}
+		}
+		return assets;
+	}
+
+	private static class BuilderProperties {
+		private String socomoVersion;
+		private File assetsLocation;
+		static BuilderProperties read() throws IOException {
+			URL propsFileUrl = BuilderProperties.class.getResource("builder.properties");
+			Properties propsInFile = new Properties();
+			try (InputStream propertiesStream = propsFileUrl.openStream()) {
+				propsInFile.load(propertiesStream);
+			}
+			BuilderProperties props = new BuilderProperties();
+			props.socomoVersion = propsInFile.getProperty("socomo-version");
+			File snapshotAssetsRoot = new File(propsInFile.getProperty("snapshot-assets-root"));
+			props.assetsLocation = new File(snapshotAssetsRoot, BuilderProperties.class.getPackage().getName().replace('.', '/'));
+			return props;
+		}
 	}
 
 	private static String shortPath(File from, File to) {

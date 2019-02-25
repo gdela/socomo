@@ -13,9 +13,9 @@ gulp.task('js', function() {
 		.pipe(linter())
 		.pipe(linter.format())
 		.pipe(linter.failAfterError())
-		.pipe(concat('visualizer.js'))
+		.pipe(concat('bundle.js'))
 		.pipe(gulp.dest(destination))
-		.pipe(rename('visualizer.min.js'))
+		.pipe(rename('bundle.min.js'))
 		.pipe(minify())
 		.pipe(gulp.dest(destination));
 });
@@ -28,9 +28,9 @@ gulp.task('css', function () {
 			failAfterError: true,
 			reporters: [{formatter: 'string', console: true}]
 		}))
-		.pipe(concat('visualizer.css'))
+		.pipe(concat('bundle.css'))
 		.pipe(gulp.dest(destination))
-		.pipe(rename('visualizer.min.css'))
+		.pipe(rename('bundle.min.css'))
 		.pipe(minify())
 		.pipe(gulp.dest(destination));
 });
