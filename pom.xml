@@ -12,6 +12,25 @@
 	<description>
 		Tool for visualizing and analyzing source code modularity of a single java project.
 	</description>
+	<url>https://github.com/gdela/socomo</url>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Wojciech Gdela</name>
+			<email>wojciech@gdela.pl</email>
+			<organizationUrl>http://gdela.pl</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git://github.com/gdela/socomo.git</connection>
+		<developerConnection>scm:git:ssh://github.com:gdela/gdela.git</developerConnection>
+		<url>https://github.com/gdela/socomo/tree/master</url>
+	</scm>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
