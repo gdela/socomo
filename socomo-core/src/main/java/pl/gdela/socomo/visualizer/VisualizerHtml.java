@@ -81,7 +81,7 @@ class VisualizerHtml {
 	private void printBody() {
 		out("<body>");
 		out("<script>");
-		out("socomo(%s, {", ecmaString(module.name));
+		out("socomo(%s, { // module", ecmaString(module.name));
 		for (Level level : levels) {
 			out("");
 			printLevel(level);
@@ -93,7 +93,7 @@ class VisualizerHtml {
 	}
 
 	private void printLevel(Level level) {
-		out("[%s]:", ecmaString(level.name));
+		out("[%s]: // level", ecmaString(level.name));
 		out("{");
 		indent(+2);
 		printComponents(level);
