@@ -26,7 +26,7 @@ fi
 SOCOMO_VERSION=`grep -o '<version>.*</version>' -m 1 ../pom.xml | sed 's/<[^>]*>//g'`
 # get goals specified in script arguments or set default goals
 MAVEN_GOALS=${@:-socomo}
-MAVEN_GOALS=${MAVEN_GOALS/socomo/pl.gdela:socomo-maven-plugin:${SOCOMO_VERSION}:analyze}
+MAVEN_GOALS=${MAVEN_GOALS/socomo/pl.gdela:socomo-maven:${SOCOMO_VERSION}:analyze}
 
 echo '~~~ Installing SoCoMo to local maven repository ~~~'
 ../mvnw -f ../pom.xml install -q -Dmaven.test.redirectTestOutputToFile=true

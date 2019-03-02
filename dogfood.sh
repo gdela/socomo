@@ -9,4 +9,4 @@ echo '~~~ Installing SoCoMo to local maven repository ~~~'
 ./mvnw install -q -Dmaven.test.redirectTestOutputToFile=true
 
 echo '~~~ Using SoCoMo on the SoCoMo project itself ~~~'
-./mvnw pl.gdela:socomo-maven-plugin:${SOCOMO_VERSION}:analyze -e
+./mvnw pl.gdela:socomo-maven:${SOCOMO_VERSION}:analyze -e

@@ -5,20 +5,16 @@ import java.io.File;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.gdela.socomo.SocomoFacade;
 
-import static org.apache.maven.plugins.annotations.LifecyclePhase.PACKAGE;
-
 /**
- * Maven plugin to execute SoCoMo analysis.
+ * Common things for Socomo maven plugins.
  */
-@Mojo(name = "analyze", defaultPhase = PACKAGE)
-public class SocomoMojo extends AbstractMojo {
+abstract class SocomoMojo extends AbstractMojo {
 
 	private static final Logger log = LoggerFactory.getLogger(SocomoMojo.class);
 
@@ -38,8 +34,13 @@ public class SocomoMojo extends AbstractMojo {
 	@Component
 	private MavenProject mavenProject;
 
-    @Override
-	public void execute() throws MojoExecutionException {
+	/**
+	 * Location of the {@code socomo.html} file to which results will be written.
+	 */
+	File socomoTargetFile;
+
+	@Override
+	public final void execute() throws MojoExecutionException {
 		if (mavenProject.getPackaging().equals("pom")) { return; }
 		if (skip) { log.warn("skipping socomo"); return; }
 
@@ -48,15 +49,22 @@ public class SocomoMojo extends AbstractMojo {
 			log.warn("skipping socomo in this module, the bytecode directory is missing");
 			return;
 		}
+		socomoTargetFile = new File(mavenProject.getBasedir(), "socomo.html");
 
 		try {
-			File basedir = mavenProject.getBasedir();
+			beforeExecute();
 			SocomoFacade socomo = new SocomoFacade(mavenProject.getName());
 			socomo.analyzeBytecode(bytecodeDirectory);
 			socomo.guessLevel();
-			socomo.visualizeInto(new File(basedir, "socomo.html"));
+			socomo.visualizeInto(socomoTargetFile);
+			afterExecute();
 		} catch (RuntimeException e) {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
     }
+
+	abstract void beforeExecute();
+
+	abstract void afterExecute();
+
 }
