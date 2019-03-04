@@ -17,6 +17,7 @@ import pl.gdela.socomo.composition.Module;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.listFiles;
+import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static pl.gdela.socomo.visualizer.Asset.script;
@@ -54,10 +55,22 @@ public class VisualizerBuilder {
 				template.addAsset(asset);
 			}
 			String visualizer = template.render();
-			writeStringToFile(file, visualizer, UTF_8);
+			save(visualizer, file);
 		} catch (IOException e) {
 			throw new RuntimeException("cannot build visualizer", e);
 		}
+	}
+
+	private static void save(String visualizer, File file) throws IOException {
+		// avoid touching file if same contents is already there (ignoring git's autocrlf changes)
+		try {
+			String oldContents = readFileToString(file, UTF_8).replace("\r\n", "\n").replace('\r', '\n');
+			String newContents = visualizer.replace("\r\n", "\n").replace('\r', '\n');
+			if (newContents.equals(oldContents)) return;
+		} catch (IOException ignore) {
+			// try to write, even if could not read old contents
+		}
+		writeStringToFile(file, visualizer, UTF_8);
 	}
 
 	private List<Asset> ownAssets(File visualizerFile) throws IOException {
