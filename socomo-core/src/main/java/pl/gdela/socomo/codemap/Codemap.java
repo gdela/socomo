@@ -71,7 +71,7 @@ public class Codemap {
 		for (CodePackage packet : this.packages()) {
 			for (CodeMember member : packet.members()) {
 				if (member.origin == origin) {
-					selected.packet(packet.fqn).member(member.className, member.memberName);
+					selected.packet(packet.fqn).member(member.className, member.memberName).size = member.size;
 				}
 			}
 		}

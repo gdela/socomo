@@ -56,6 +56,8 @@ public class CodemapToLevelTest {
 		);
 		assertThat(level.dependency(cat, fish).strength).isEqualTo(1);
 		assertThat(level.dependency(dog, cat).strength).isEqualTo(2);
+		assertThat(level.component("cat").size).isGreaterThan(level.component("dog").size);
+		assertThat(level.component("dog").size).isEqualTo(level.component("fish").size);
 	}
 
 	@Test
@@ -76,6 +78,7 @@ public class CodemapToLevelTest {
 				new ComponentDep(domestic, rodent)
 		);
 		assertThat(level.dependency(domestic, rodent).strength).isEqualTo(2);
+		assertThat(level.component("domestic").size).isGreaterThan(level.component("rodent").size);
 	}
 
 	@Test
@@ -99,6 +102,7 @@ public class CodemapToLevelTest {
 		);
 		assertThat(level.dependency(animal, plant).strength).isEqualTo(2);
 		assertThat(level.dependency(plant, animal).strength).isEqualTo(1);
+		assertThat(level.component("animal").size).isGreaterThan(level.component("plant").size);
 	}
 
 	@Test

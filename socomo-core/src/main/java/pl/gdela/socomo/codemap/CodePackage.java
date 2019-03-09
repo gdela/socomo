@@ -2,7 +2,9 @@ package pl.gdela.socomo.codemap;
 
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -64,8 +66,27 @@ public class CodePackage implements Comparable<CodePackage> {
 		return member(className, null);
 	}
 
+	/**
+	 * Returns the size of this package. The returned number doesn't have a real-world
+	 * meaning, so can be used only to relatively compare sizes of two packages, and
+	 * this comparision should match an average opinion of a human developer.
+	 */
 	public int size() {
-		return members.size();
+		Set<String> classes = new HashSet<>();
+		for (CodeMember member : members.values()) {
+			classes.add(member.className);
+		}
+		int numberOfClasses = classes.size();
+
+		int sizeOfMembers = 0;
+		for (CodeMember member : members.values()) {
+			sizeOfMembers += member.size;
+		}
+
+		// an average size (number of bytecode instruction) per class ranges from 100 to 250 in various projects
+		// that were checked, so using 500 multiplier below gives more weight to the number of classes, while still
+		// considering size of members - and that should match a human opinion about the relative size of a package
+		return 500 * numberOfClasses + sizeOfMembers;
 	}
 
 	@Override

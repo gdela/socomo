@@ -11,7 +11,7 @@ public class Component implements Comparable<Component> {
 		this.name = name;
 	}
 
-	public void incrementSizeBy(int increment) {
+	void incrementSizeBy(int increment) {
 		size += increment;
 	}
 

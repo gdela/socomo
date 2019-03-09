@@ -42,8 +42,8 @@ class DependencyCollectorAdapter {
 		markDependency(type, targetClass, null);
 	}
 
-	void exitMember() {
-		adaptee.exitMember();
+	void exitMember(int size) {
+		adaptee.exitMember(size);
 	}
 
 	void exitClass() {

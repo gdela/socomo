@@ -22,7 +22,7 @@ class FieldVisitor extends org.objectweb.asm.FieldVisitor {
 	@Override
 	public void visitEnd() {
 		// to exit member entered in ClassVisitor.visitField()
-		collector.exitMember();
+		collector.exitMember(1);
 	}
 
 	@Override

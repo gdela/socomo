@@ -34,6 +34,11 @@ public class CodeMember implements Comparable<CodeMember> {
 	 */
 	Origin origin = EXTERNAL;
 
+	/**
+	 * Size of the member, roughly the number of bytecode instruction that this member consists of.
+	 */
+	int size;
+
 	CodeMember(CodePackage packet, String className, String memberName) {
 		this.packet = packet;
 		this.className = className;

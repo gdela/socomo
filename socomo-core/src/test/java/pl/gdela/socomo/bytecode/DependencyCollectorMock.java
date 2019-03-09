@@ -80,7 +80,7 @@ class DependencyCollectorMock implements DependencyCollector {
 	}
 
 	@Override
-	public void exitMember() {
+	public void exitMember(int size) {
 		validState(currentMember != null, "cannot exit member, because there is no current member");
 		currentMember = null;
 	}

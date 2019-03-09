@@ -43,7 +43,8 @@ public class CodemappingCollector implements DependencyCollector {
 	}
 
 	@Override
-	public void exitMember() {
+	public void exitMember(int size) {
+		currentMember.size = size;
 		currentMember = null;
 	}
 

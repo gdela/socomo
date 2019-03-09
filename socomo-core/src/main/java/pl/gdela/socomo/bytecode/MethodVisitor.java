@@ -27,6 +27,8 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	private final DependencyCollectorAdapter collector;
 
+	private int instructionCount = 1;
+
 	MethodVisitor(DependencyCollectorAdapter collector) {
 		super(Opcodes.ASM5);
 		this.collector = collector;
@@ -35,7 +37,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	@Override
 	public void visitEnd() {
 		// to exit member entered in ClassVisitor.visitMethod()
-		collector.exitMember();
+		collector.exitMember(instructionCount);
 	}
 
 	@Override
@@ -68,8 +70,18 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	}
 
 	@Override
+	public void visitParameter(String name, int access) {
+		// not interesting
+	}
+
+	@Override
 	public void visitCode() {
 		// noop
+	}
+
+	@Override
+	public void visitMaxs(int maxStack, int maxLocals) {
+		// not interesting
 	}
 
 	@Override
@@ -79,6 +91,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+		instructionCount++;
 		if (name.equals("this") || name.startsWith("this$")) {
 			return; // not interesting, java creates such 'variable' in constructor, it's just dependency to self
 		}
@@ -91,6 +104,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitTypeInsn(int opcode, String type) {
+		instructionCount++;
 		DepType dep = REFERENCES;
 		if (opcode == Opcodes.NEW) dep = CREATES;
 		if (opcode == Opcodes.ANEWARRAY) dep = CREATES_ARRAY;
@@ -100,11 +114,13 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitMultiANewArrayInsn(String desc, int dims) {
+		instructionCount++;
 		collector.markDependency(CREATES_ARRAY, getType(desc));
 	}
 
 	@Override
 	public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+		instructionCount++;
 		if (name.equals("this") || name.startsWith("this$")) {
 			return; // not interesting, java uses such 'field' in constructor of anonymous classes, it's just dependency to self
 		}
@@ -113,12 +129,14 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+		instructionCount++;
 		collector.markDependency(CALLS, getObjectType(owner), name + "()");
 	}
 
 	@Override
 	@SuppressWarnings({"StatementWithEmptyBody", "ChainOfInstanceofChecks"})
 	public void visitLdcInsn(final Object cst) {
+		instructionCount++;
 		if (cst instanceof Number) {
 			// not interesting
 		}
@@ -139,6 +157,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
+		instructionCount++;
 		if (type != null) {
 			collector.markDependency(CATCHES, getObjectType(type));
 		}
@@ -146,21 +165,25 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitInsn(int opcode) {
+		instructionCount++;
 		// not interesting
 	}
 
 	@Override
 	public void visitIntInsn(int opcode, int operand) {
+		instructionCount++;
 		// not interesting
 	}
 
 	@Override
 	public void visitVarInsn(int opcode, int var) {
+		instructionCount++;
 		// not interesting
 	}
 
 	@Override
 	public void visitIincInsn(int var, int increment) {
+		instructionCount++;
 		// not interesting
 	}
 
@@ -171,47 +194,38 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitJumpInsn(int opcode, Label label) {
+		instructionCount++;
 		// not interesting
 	}
 
 	@Override
 	public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {
+		instructionCount++;
 		// not interesting
 	}
 
 	@Override
 	public void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels) {
+		instructionCount++;
 		// not interesting
 	}
 
 	@Override
 	public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-		// not interesting
-	}
-
-	@Override
-	public void visitMaxs(int maxStack, int maxLocals) {
-		// not interesting
-	}
-
-	@Override
-	public void visitAttribute(Attribute attribute) {
-		log.warn("ignoring non-standard attribute {} of class {}", attribute.type, attribute.getClass());
-	}
-
-	@Override
-	public void visitParameter(String name, int access) {
+		instructionCount++;
 		// not interesting
 	}
 
 	@Override
 	public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+		instructionCount++;
 		// fixme: split bytecode analyzer tests into two modules (java8-bytecode, java7-bytecode), then cover invoke dynamic with test
 		log.trace("ignoring dependencies in invoke dynamic {}, {}, {}, {}: not yet supported", name, desc, bsm, bsmArgs);
 	}
 
 	@Override
 	public AnnotationVisitor visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end, int[] index, String desc, boolean visible) {
+		instructionCount++;
 		// todo: read dependencies also from local variable annotation
 		log.warn("ignoring dependencies in local variable annotation {}, {}: not yet supported", typePath, desc);
 		return null;
@@ -219,6 +233,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+		instructionCount++;
 		// todo: read dependencies also from instruction annotation
 		log.warn("ignoring dependencies in instruction annotation {}, {}: not yet supported", typePath, desc);
 		return null;
@@ -226,8 +241,14 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+		instructionCount++;
 		// todo: read dependencies also from try catch annotation
 		log.warn("ignoring dependencies in try catch annotation {}, {}: not yet supported", typePath, desc);
 		return null;
+	}
+
+	@Override
+	public void visitAttribute(Attribute attribute) {
+		log.warn("ignoring non-standard attribute {} of class {}", attribute.type, attribute.getClass());
 	}
 }

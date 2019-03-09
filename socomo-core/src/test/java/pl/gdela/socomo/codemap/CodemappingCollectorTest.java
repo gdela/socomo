@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static pl.gdela.socomo.codemap.CodemapTestUtils.asStrings;
 import static pl.gdela.socomo.codemap.CodemapTestUtils.fromOrigin;
@@ -22,6 +24,9 @@ public class CodemappingCollectorTest {
 	private static CodePackage beta;
 	private static CodePackage gamma;
 
+	private static final int sizeOfBla = 3;
+	private static final int sizeOfFoo = 7;
+
 	@BeforeClass
 	public static void collect_dependencies_and_build_codemap() {
 		CodemappingCollector collector = new CodemappingCollector();
@@ -35,12 +40,12 @@ public class CodemappingCollectorTest {
 			collector.markDependency(CALLS, "gamma.G1", "x");
 			collector.markDependency(CALLS, "gamma.G2", "y");
 			collector.markDependency(CALLS, "gamma.G3", "z");
-			collector.exitMember();
+			collector.exitMember(sizeOfBla);
 			collector.enterMember("foo");
 			collector.markDependency(CALLS, "gamma.G1", "y");
 			collector.markDependency(CALLS, "gamma.G2", "x");
 			collector.markDependency(CALLS, "gamma.G3", "z");
-			collector.exitMember();
+			collector.exitMember(sizeOfFoo);
 			collector.exitClass();
 		}
 		codemap = collector.getCodemap();
@@ -99,5 +104,26 @@ public class CodemappingCollectorTest {
 		assertThat(alfa.members()).are(fromOrigin(MAIN));
 		assertThat(beta.members()).are(fromOrigin(MAIN));
 		assertThat(gamma.members()).are(fromOrigin(EXTERNAL));
+	}
+
+	@Test
+	public void check_member_sizes() {
+		for (CodeMember member : union(alfa.members(), beta.members())) {
+			int expectedSize;
+			switch (firstNonNull(member.memberName, "_none_")) {
+				case "bla": expectedSize = sizeOfBla; break;
+				case "foo": expectedSize = sizeOfFoo; break;
+				default: expectedSize = 0; break;
+			}
+			assertThat(member.size).as("size of %s", member).isEqualTo(expectedSize);
+		}
+		for (CodeMember member : gamma.members()) {
+			assertThat(member.size).as("size of %s", member).isZero();
+		}
+	}
+
+	@Test
+	public void check_package_sizes() {
+		assertThat(alfa.size()).as("size of %s", alfa).isEqualTo(beta.size() * 2);
 	}
 }
