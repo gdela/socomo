@@ -7,7 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="socomo-core" />
-        <module name="socomo-maven-plugin" />
+        <module name="socomo-maven" />
       </profile>
     </annotationProcessing>
   </component>
