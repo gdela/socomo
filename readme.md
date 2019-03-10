@@ -9,7 +9,7 @@ composition as you progress with the development of your java project. You can u
 
 ## Quick Start
 
-Try Socomo now on your code:
+Try it now on your code:
 
 ```bash
 mvn pl.gdela:socomo-maven:display
