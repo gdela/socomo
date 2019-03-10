@@ -1,4 +1,4 @@
-# Socomo - visualize and maintain composition of your java code 
+# Socomo - care about the composition of your java code 
 
 Socomo is a simple tool to visualize the composition of your source code and track changes to the
 composition as you progress with the development of your java project. You can use this tool to:
