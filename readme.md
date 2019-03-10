@@ -27,6 +27,14 @@ and add [socomo-maven plugin](#maven-plugin) to your `pom.xml`. Whenever composi
 the build plugin will update this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
 
+## How Does It Work
+
+Socomo analyses bytecode to find dependencies between code members, so code needs to be compiled
+first. The generated `socomo.html` file is a concise representation of code composition at chosen
+**level** - the root package of the diagram. Each child package in the root, together with subpackages
+contained in it, is considered a **component** and depicted on the diagram as a node. Edges between
+nodes represent dependencies.
+
 ## Maven Plugin
 
 Add this to the `<build><plugins>` section in your `pom.xml` file. For multi-module projects,

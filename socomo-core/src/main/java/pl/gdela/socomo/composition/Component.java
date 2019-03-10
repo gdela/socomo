@@ -2,6 +2,10 @@ package pl.gdela.socomo.composition;
 
 import java.util.Objects;
 
+/**
+ * Slice of the code at give {@linkplain Level level}. Component is a child package under
+ * given level, together with all subpackages contained within it.
+ */
 public class Component implements Comparable<Component> {
 
 	public final String name;

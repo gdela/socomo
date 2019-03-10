@@ -10,7 +10,7 @@ import static java.lang.Math.max;
 /**
  * Level at which we model source code composition. Level name is actually a java package name,
  * all sibling and parent packages are not included in determining the composition. Only code in
- * subpackages (transitively) forms components of this level.
+ * subpackages (transitively) forms {@linkplain Component components} of this level.
  */
 public class Level {
 

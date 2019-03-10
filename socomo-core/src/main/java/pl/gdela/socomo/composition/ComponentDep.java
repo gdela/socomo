@@ -4,10 +4,24 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+/**
+ * Directed dependency between two {@link Component}s.
+ */
 public class ComponentDep implements Comparable<ComponentDep> {
 
+	/**
+	 * The component that uses {@code to} component.
+	 */
 	public final Component from;
+
+	/**
+	 * The component that is used by {@code from} component.
+	 */
 	public final Component to;
+
+	/**
+	 * Strength of the dependency.
+	 */
 	public int strength;
 
 	ComponentDep(Component from, Component to) {
