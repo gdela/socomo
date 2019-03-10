@@ -31,9 +31,30 @@ in the most convenient place - in your source code repository.
 
 Socomo analyses bytecode to find dependencies between code members, so code needs to be compiled
 first. The generated `socomo.html` file is a concise representation of code composition at chosen
-**level** - the root package of the diagram. Each child package in the root, together with subpackages
+**level** - the root package of the diagram. Each child package of the root, together with subpackages
 contained in it, is considered a **component** and depicted on the diagram as a node. Edges between
 nodes represent dependencies.
+
+## Best Practices for Composition
+
+Socomo is an opinionated tool that requires you to structure the code in the right way to be most useful:
+
+1. Make your topmost components speak about the business. They [shouldn't tell which frameworks
+do you use][screaming architecture]. The technical details are more familiar to the developer
+and thus less [important than the business domain][trivial grouping].
+
+2. Keep your dependencies acyclic. If two components depend on each other, you cannot understand and
+work on them one at a time, they actually [form one larger component][cyclic dependencies].
+
+3. Let your components be balanced in size. Having one huge component amongst tens of smaller ones
+defies the whole purpose of dividing the code.
+
+Those principles will help you avoid your project being a [big ball of mud]. 
+
+[screaming architecture]: https://blog.cleancoder.com/uncle-bob/2011/09/30/Screaming-Architecture.html
+[trivial grouping]: https://devcards.io/trivial-grouping-of-classes
+[cyclic dependencies]: https://lattix.com/blog/2017/07/26/why-cyclic-dependencies-are-bad
+[big ball of mud]: http://www.mamuz.de/article/from-big-ball-of-mud-to-emergent-design/0Pw682Kxk
 
 ## Maven Plugin
 
