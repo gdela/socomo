@@ -71,15 +71,15 @@ const diagramStyle = cytoscape.stylesheet()
 
 	.selector('edge.highlight-ingoer')
 	.css({
-		'line-color': '#0d8c0d',
-		'target-arrow-color': '#0d8c0d',
+		'line-color': '#1a991a',
+		'target-arrow-color': '#1a831a',
 		'z-index': 1
 	})
 
 	.selector('edge.highlight-outgoer')
 	.css({
-		'line-color': '#1b45ad',
-		'target-arrow-color': '#1b45ad',
+		'line-color': '#143ea6',
+		'target-arrow-color': '#1441bb',
 		'z-index': 1
 	})
 
@@ -149,26 +149,29 @@ function drawDiagram(diagramContainer, level) {
 	}, 10);
 
 	// mark upwards dependencies as violations
-	cy.edges().filter( function (edge) {
-		return edge.target().position('y') < edge.source().position('y');
-	}).addClass('violation');
+	const upwardDependency = edge => edge.target().position('y') < edge.source().position('y');
+	cy.edges().filter(upwardDependency).addClass('violation');
+	cy.on('drag', 'node', event => {
+		const node = event.target;
+		node.connectedEdges('.violation').removeClass('violation');
+		node.connectedEdges().filter(upwardDependency).addClass('violation');
+	});
 
 	// highlighting on hover
-	cy.on('mouseover', 'node', function(e){
-		const node = e.target;
+	cy.on('mouseover', 'node', event => {
+		const node = event.target;
 		cy.elements().subtract(node.outgoers()).subtract(node.incomers()).subtract(node).addClass('hushed');
 		node.addClass('highlight');
 		node.outgoers().addClass('highlight-outgoer');
 		node.incomers().addClass('highlight-ingoer');
 	});
-	cy.on('mouseout', 'node', function(e){
-		const node = e.target;
+	cy.on('mouseout', 'node', event => {
+		const node = event.target;
 		cy.elements().removeClass('hushed');
 		node.removeClass('highlight');
 		node.outgoers().removeClass('highlight-outgoer');
 		node.incomers().removeClass('highlight-ingoer');
 	});
-
 }
 
 /*

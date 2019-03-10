@@ -71,15 +71,15 @@ const diagramStyle = cytoscape.stylesheet()
 
 	.selector('edge.highlight-ingoer')
 	.css({
-		'line-color': '#0d8c0d',
-		'target-arrow-color': '#0d8c0d',
+		'line-color': '#1a991a',
+		'target-arrow-color': '#1a831a',
 		'z-index': 1
 	})
 
 	.selector('edge.highlight-outgoer')
 	.css({
-		'line-color': '#1b45ad',
-		'target-arrow-color': '#1b45ad',
+		'line-color': '#143ea6',
+		'target-arrow-color': '#1441bb',
 		'z-index': 1
 	})
 
