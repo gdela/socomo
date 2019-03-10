@@ -107,7 +107,7 @@ class VisualizerHtml {
 		out("components: {");
 		indent(+2);
 		for (Component component : level.components) {
-			out("%-36s :{ size:%.1f },", ecmaString(component.name), component.size/maxSize);
+			out("%-36s :{ size: %.1f },", ecmaString(component.name), component.size/maxSize);
 		}
 		indent(-2);
 		out("},");
@@ -119,7 +119,7 @@ class VisualizerHtml {
 		indent(+2);
 		for (ComponentDep dep : level.dependencies) {
 			String depName = dep.from.name + " -> " + dep.to.name;
-			out("%-36s :{ strength:%.1f },", ecmaString(depName), dep.strength/maxStrength);
+			out("%-36s :{ strength: %.1f },", ecmaString(depName), dep.strength/maxStrength);
 		}
 		indent(-2);
 		out("},");
