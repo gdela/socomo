@@ -9,7 +9,8 @@ Currently releases of Socomo are done by Wojciech Gdela. Here's the checklist fo
 7. check in browser the `socomo.html` from `socomo-core` module
 8. `./mvnw deploy -P release`
 9. close staging repository on [sonatype manager](https://oss.sonatype.org/)
-10. after ten minutes check [central repository](https://repo1.maven.org/maven2/pl/gdela/socomo-parent/)
-11. `./mvnw versions:set -DgenerateBackupPoms=false -DnewVersion=2.Y-SNAPSHOT`
-12. `./dogfood.sh`
-13. commit changes and push to github
+10. click the release button
+11. after ten minutes check [central repository](https://repo1.maven.org/maven2/pl/gdela/socomo-parent/)
+12. `./mvnw versions:set -DgenerateBackupPoms=false -DnewVersion=2.Y-SNAPSHOT`
+13. `./dogfood.sh`
+14. commit changes and push to github
