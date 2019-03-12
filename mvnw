@@ -211,7 +211,11 @@ else
     if [ "$MVNW_VERBOSE" = true ]; then
       echo "Couldn't find .mvn/wrapper/maven-wrapper.jar, downloading it ..."
     fi
-    jarUrl="https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.4.2/maven-wrapper-0.4.2.jar"
+    if [ -n "$MVNW_REPOURL" ]; then
+      jarUrl="$MVNW_REPOURL/io/takari/maven-wrapper/0.5.3/maven-wrapper-0.5.3.jar"
+    else
+      jarUrl="https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.3/maven-wrapper-0.5.3.jar"
+    fi
     while IFS="=" read key value; do
       case "$key" in (wrapperUrl) jarUrl="$value"; break ;;
       esac
@@ -220,22 +224,38 @@ else
       echo "Downloading from: $jarUrl"
     fi
     wrapperJarPath="$BASE_DIR/.mvn/wrapper/maven-wrapper.jar"
+    if $cygwin; then
+      wrapperJarPath=`cygpath --path --windows "$wrapperJarPath"`
+    fi
 
     if command -v wget > /dev/null; then
         if [ "$MVNW_VERBOSE" = true ]; then
           echo "Found wget ... using wget"
         fi
-        wget "$jarUrl" -O "$wrapperJarPath"
+        if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
+            wget "$jarUrl" -O "$wrapperJarPath"
+        else
+            wget --http-user=$MVNW_USERNAME --http-password=$MVNW_PASSWORD "$jarUrl" -O "$wrapperJarPath"
+        fi
     elif command -v curl > /dev/null; then
         if [ "$MVNW_VERBOSE" = true ]; then
           echo "Found curl ... using curl"
         fi
-        curl -o "$wrapperJarPath" "$jarUrl"
+        if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
+            curl -o "$wrapperJarPath" "$jarUrl" -f
+        else
+            curl --user $MVNW_USERNAME:$MVNW_PASSWORD -o "$wrapperJarPath" "$jarUrl" -f
+        fi
+        
     else
         if [ "$MVNW_VERBOSE" = true ]; then
           echo "Falling back to using Java to download"
         fi
         javaClass="$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.java"
+        # For Cygwin, switch paths to Windows format before running javac
+        if $cygwin; then
+          javaClass=`cygpath --path --windows "$javaClass"`
+        fi
         if [ -e "$javaClass" ]; then
             if [ ! -e "$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.class" ]; then
                 if [ "$MVNW_VERBOSE" = true ]; then

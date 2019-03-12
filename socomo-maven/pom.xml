@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>pl.gdela</groupId>
 		<artifactId>socomo-parent</artifactId>
-		<version>2.1-SNAPSHOT</version>
+		<version>2.0.2</version>
 	</parent>
     <artifactId>socomo-maven</artifactId>
     <packaging>maven-plugin</packaging>
@@ -15,6 +15,13 @@
 	<description>
 		Maven plugin for visualizing and analyzing source code modularity of a single java project.
 	</description>
+
+	<prerequisites>
+		<maven>${maven.version}</maven>
+	</prerequisites>
+	<properties>
+		<maven.version>3.3.9</maven.version>
+	</properties>
 
     <dependencies>
 
@@ -28,7 +35,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>2.0</version>
+            <version>${maven.version}</version>
         </dependency>
 		<dependency>
 			<groupId>org.apache.maven.plugin-tools</groupId>
@@ -39,7 +46,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
-            <version>3.6.0</version>
+            <version>${maven.version}</version>
         </dependency>
 
 		<!-- Testing -->
