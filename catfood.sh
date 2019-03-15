@@ -6,7 +6,8 @@ mkdir -p catfood; cd catfood
 
 if [[ "$*" = "init" ]]; then
 	echo '~~~ Setting up ancient maven for foreign projects ~~~'
-	../mvnw -q -N io.takari:maven:wrapper -Dmaven=3.1.1
+	maven_version=`grep -o '<maven.version>.*</maven.version>' -m 1 ../socomo-maven/pom.xml | sed 's/<[^>]*>//g'`
+	../mvnw -q -N io.takari:maven:wrapper -Dmaven=${maven_version}
 	echo '~~~ Downloading some projects to use SoCoMo on them ~~~'
 	[[ -d commons-lang ]] || git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git
 	[[ -d assertj-core ]] || git clone https://github.com/joel-costigliola/assertj-core.git
