@@ -19,11 +19,13 @@ const diagramLayout = {
 		direction: 'DOWN',
 		thoroughness: 7,
 		nodePlacement: 'LINEAR_SEGMENTS',
+		cycleBreaking: 'GREEDY',
 		spacing: 8,
 		inLayerSpacingFactor: 2.0,
 		edgeSpacingFactor: 0.2,
-		borderSpacing: 10
-	}
+		borderSpacing: 10,
+	},
+	priority: edge => Math.round(edge.data('strength'))
 };
 
 const diagramStyle = cytoscape.stylesheet()

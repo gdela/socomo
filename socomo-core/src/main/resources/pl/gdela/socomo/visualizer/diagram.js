@@ -43,7 +43,7 @@ function drawDiagram(diagramContainer, level) {
 	// workaround for google font not used initially by the browser for node labels, only when the graph is redrawn
 	// todo: replace this diagram refresh with "font face observer", https://filamentgroup.com/lab/font-events.html
 	diagramContainer.style.visibility = 'hidden';
-	setTimeout(function () {
+	setTimeout(() => {
 		cy.elements().addClass('dummy');
 		cy.elements().removeClass('dummy');
 		diagramContainer.style.visibility = 'visible';
