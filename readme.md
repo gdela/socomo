@@ -27,13 +27,24 @@ and add [socomo-maven plugin](#maven-plugin) to your `pom.xml`. Whenever composi
 the build plugin will update this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
 
-## How Does It Work
+## How to Read the Diagram
 
-Socomo analyses bytecode to find dependencies between code members, so code needs to be compiled
-first. The generated `socomo.html` file is a concise representation of code composition at chosen
-**level** - the root package of the diagram. Each child package of the root, together with subpackages
-contained in it, is considered a **component** and depicted on the diagram as a node. Edges between
-nodes represent dependencies.
+<p align="center">
+  <img src="example-acme.png" alt="Composition of sample e-commerce project">
+</p>
+
+The diagram shows composition of your code at some specific level, typically the topmost package
+of the project. Each sub-package at this level is a component represented as node in the diagram.
+Components are arranged on the diagram to form layers: a component uses other components that are
+below it, and is used by components that are above it.
+
+The actual dependencies analyzed from the bytecode are represented as edges. The wider the edge,
+the stronger is the dependency between components.
+
+When you select a component, blue edges show outgoing dependencies pointing to components used
+by the selected one, and green edges show incoming dependencies from the components that use
+the selected one. Red edges are dependencies that point upwards, against the layers, and thus
+are the cause of a cyclic dependency between two or more components.
 
 ## Best Practices for Composition
 
