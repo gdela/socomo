@@ -486,14 +486,14 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
 
 const diagramLayout = {
 	name: 'klay', // todo: choose between dagre and klay, check also BRANDES_KOEPF node placement
+	fit: true,
 
-	// dagre
+	// dagre - https://github.com/cytoscape/cytoscape.js-dagre
 	rankDir: 'TB',
 	nodeSep: 40,
 	rankSep: 60,
 
-	// klay
-	fit: true,
+	// klay - https://github.com/cytoscape/cytoscape.js-klay
 	klay: {
 		direction: 'DOWN',
 		thoroughness: 7,
@@ -507,6 +507,7 @@ const diagramLayout = {
 	priority: edge => Math.round(edge.data('strength'))
 };
 
+// see http://js.cytoscape.org/#style
 const diagramStyle = cytoscape.stylesheet()
 
 	.selector('node')
