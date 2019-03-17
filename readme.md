@@ -19,7 +19,7 @@ This will generate the `socomo.html` file and open it in the browser, where you'
 the visualization of code structure. Here's an example for Guava project:
 
 <p align="center">
-  <img src="example.gif" alt="Composition of Guava viewed in Socomo">
+  <img src="example-guava.gif" alt="Composition of Guava viewed in Socomo">
 </p>
 
 To track changes to the composition commit the `socomo.html` file to your source code repository
@@ -27,22 +27,22 @@ and add [socomo-maven plugin](#maven-plugin) to your `pom.xml`. Whenever composi
 the build plugin will update this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
 
-## How to Read the Diagram
-
-<p align="center">
-  <img src="example-acme.png" alt="Composition of sample e-commerce project">
-</p>
+## How to Read Diagrams
 
 The diagram shows composition of your code at some specific level, typically the topmost package
-of the project. Each sub-package at this level is a component represented as node in the diagram.
+of the project. Each subpackage at this level is a component represented as node in the diagram.
 Components are arranged on the diagram to form layers: a component uses other components that are
 below it, and is used by components that are above it.
 
 The actual dependencies analyzed from the bytecode are represented as edges. The wider the edge,
 the stronger is the dependency between components.
 
+<p align="center">
+  <img src="example-acme.png" alt="Composition of sample e-commerce project">
+</p>
+
 When you select a component, blue edges show outgoing dependencies pointing to components used
-by the selected one, and green edges show incoming dependencies from the components that use
+by the selected one, and brown edges show incoming dependencies from the components that use
 the selected one. Red edges are dependencies that point upwards, against the layers, and thus
 are the cause of a cyclic dependency between two or more components.
 
@@ -51,7 +51,7 @@ are the cause of a cyclic dependency between two or more components.
 Socomo is an opinionated tool that requires you to structure the code in the right way to be most useful:
 
 1. Make your topmost components speak about the business. They [shouldn't tell which frameworks
-do you use][screaming architecture]. The technical details are more familiar to the developer
+do you use][screaming architecture]. The technical details are more familiar to a developer
 and thus less [important than the business domain][trivial grouping].
 
 2. Keep your dependencies acyclic. If two components depend on each other, you cannot understand and
