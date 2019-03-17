@@ -38,20 +38,17 @@ const diagramStyle = cytoscape.stylesheet()
 		'height': '25px',
 		'width': '90px',
 		'padding': 0,
-		// 'border-color': '#e8e4e8',
-		// 'border-width': 1,
 		'color': '#000',
 		'background-color': '#ede9ed',
 		'text-valign': 'center',
 		'text-halign': 'center',
 		'font-family': 'Lato, Verdana, Geneva, sans-serif',
 		'font-size': '10px',
-		// 'font-weight': 'bold'
 	})
 
 	.selector('edge')
 	.css({
-		'width': 'mapData(strength, 0, 1, 0.33, 1.00)',
+		'width': 'mapData(strength, 0, 1, 0.3, 1.5)',
 		'line-color': '#dce6d7',
 		'line-style': 'solid',
 		'target-arrow-shape': 'triangle-backcurve',
@@ -74,8 +71,8 @@ const diagramStyle = cytoscape.stylesheet()
 
 	.selector('edge.highlight-ingoer')
 	.css({
-		'line-color': '#1a991a',
-		'target-arrow-color': '#1a831a',
+		'line-color': '#a88d5e',
+		'target-arrow-color': '#af976b',
 		'z-index': 1
 	})
 
