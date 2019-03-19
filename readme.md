@@ -7,25 +7,35 @@ composition as you progress with the development of your java project. You can u
 - Assure that architecture of your project is not being broken by seeing what new dependencies are added.
 - Brag on your blog or twitter how great the structure of your code is, proving it with the diagrams.
 
-## Quick Start
-
-Try it now on your code:
-
-```bash
-mvn pl.gdela:socomo-maven:display
-```
-
-This will generate the `socomo.html` file and open it in the browser, where you'll see
-the visualization of code structure. Here's an example for Guava project:
+See Socomo in action on the Guava project:
 
 <p align="center">
   <img src="example-guava.gif" alt="Composition of Guava viewed in Socomo">
 </p>
 
+## Quick Start
+
+Try it now on your code, for a project build with maven do this:
+
+```bash
+mvn pl.gdela:socomo-maven:display
+```
+
+Alternatively, for a jar file, download the [latest socomo]() and do this:
+
+```bash
+java -jar socomo.jar -d path/to/your.jar
+```
+
+This will generate the `socomo.html` file and open it in the browser, where you'll see
+the visualization of code structure.
+
 To track changes to the composition commit the `socomo.html` file to your source code repository
 and add [socomo-maven plugin](#maven-plugin) to your `pom.xml`. Whenever composition changes
 the build plugin will update this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
+
+[latest socomo]: https://github.com/gdela/socomo/releases/latest
 
 ## How to Read Diagrams
 

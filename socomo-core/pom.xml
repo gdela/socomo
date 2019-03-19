@@ -13,7 +13,7 @@
 
 	<name>SoCoMo Core</name>
 	<description>
-		Core parts of the tool for visualizing and analyzing source code modularity of a single java project.
+		Core parts of the tool for visualizing and analyzing source code modularity of a java project.
 	</description>
 
 	<dependencies>
@@ -22,7 +22,15 @@
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm</artifactId>
+			<version>5.2</version>
 		</dependency>
+		<dependency>
+			<groupId>info.picocli</groupId>
+			<artifactId>picocli</artifactId>
+			<version>3.9.5</version>
+		</dependency>
+
+		<!-- General Utilities -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -31,8 +39,6 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 		</dependency>
-
-		<!-- General Utilities -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>

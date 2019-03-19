@@ -11,7 +11,7 @@ import static java.awt.Desktop.getDesktop;
  * Maven plugin to execute SoCoMo analysis and display results in the browser.
  */
 @Mojo(name = "display")
-public class DisplayMojo extends SocomoMojo {
+class DisplayMojo extends SocomoMojo {
 
 	private static final Logger log = LoggerFactory.getLogger(DisplayMojo.class);
 

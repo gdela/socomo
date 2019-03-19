@@ -10,7 +10,7 @@
 
     <name>SoCoMo</name>
 	<description>
-		Tool for visualizing and analyzing source code modularity of a single java project.
+		Tool for visualizing and analyzing source code modularity of a java project.
 	</description>
 	<url>https://github.com/gdela/socomo</url>
 	<licenses>
@@ -54,12 +54,7 @@
 	<dependencyManagement>
 		<dependencies>
 
-			<!-- Main Dependencies -->
-			<dependency>
-				<groupId>org.ow2.asm</groupId>
-				<artifactId>asm</artifactId>
-				<version>5.2</version>
-			</dependency>
+			<!-- General Utilities -->
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
@@ -70,8 +65,6 @@
 				<artifactId>slf4j-simple</artifactId>
 				<version>1.7.25</version>
 			</dependency>
-
-			<!-- General Utilities -->
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
@@ -120,6 +113,18 @@
 					<configuration>
 						<source>1.7</source>
 						<target>1.7</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.4</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							</manifest>
+						</archive>
 					</configuration>
 				</plugin>
 			</plugins>

@@ -13,7 +13,7 @@
 
 	<name>SoCoMo Maven Plugin</name>
 	<description>
-		Maven plugin for visualizing and analyzing source code modularity of a single java project.
+		Maven plugin for visualizing and analyzing source code modularity of a java project.
 	</description>
 
 	<properties>

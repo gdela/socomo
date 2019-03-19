@@ -7,6 +7,8 @@
     <writeAnnotations>
       <writeAnnotation name="org.apache.maven.plugins.annotations.Parameter" />
       <writeAnnotation name="org.apache.maven.plugins.annotations.Component" />
+      <writeAnnotation name="picocli.CommandLine.Parameters" />
+      <writeAnnotation name="picocli.CommandLine.Option" />
     </writeAnnotations>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
