@@ -24,12 +24,12 @@ import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 		name = "socomo",
 		description = "Analyzes source code composition of a java project.",
 		mixinStandardHelpOptions = true,
-		versionProvider = Socomo.ManifestVersionProvider.class
+		versionProvider = SocomoMain.ManifestVersionProvider.class
 )
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-class Socomo implements Callable<Void> {
+class SocomoMain implements Callable<Void> {
 
-	private static final Logger log = LoggerFactory.getLogger(Socomo.class);
+	private static final Logger log = LoggerFactory.getLogger(SocomoMain.class);
 
 	@Parameters(
 			paramLabel = "INPUT",
@@ -53,7 +53,7 @@ class Socomo implements Callable<Void> {
 	private boolean display;
 
 	public static void main(String[] args) {
-		CommandLine.call(new Socomo(), args);
+		CommandLine.call(new SocomoMain(), args);
 	}
 
 	@Override
@@ -91,7 +91,7 @@ class Socomo implements Callable<Void> {
 	static class ManifestVersionProvider implements IVersionProvider {
 		@Override
 		public String[] getVersion() {
-			String version = Socomo.class.getPackage().getImplementationVersion();
+			String version = SocomoMain.class.getPackage().getImplementationVersion();
 			version = firstNonBlank(version, "unknown");
 			return new String[] { version };
 		}
