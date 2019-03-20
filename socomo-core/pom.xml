@@ -86,19 +86,26 @@
 				<version>1.6</version>
 				<executions>
 					<execution>
+						<id>install node and npm</id>
 						<goals>
 							<goal>install-node-and-npm</goal>
-							<goal>gulp</goal>
+							<goal>npm</goal>
 						</goals>
+						<phase>package</phase>
+						<configuration>
+							<nodeVersion>v10.14.2</nodeVersion>
+							<arguments>install</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>build with gulp</id>
+						<goals><goal>gulp</goal></goals>
 						<phase>package</phase>
 						<configuration>
 							<arguments>build</arguments>
 						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<nodeVersion>v10.14.2</nodeVersion>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
