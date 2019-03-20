@@ -21,8 +21,9 @@ import static org.apache.commons.lang3.StringUtils.firstNonBlank;
  * Main class to execute SoCoMo analysis. This is rarely used, rather the maven/gradle plugins are used.
  */
 @Command(
-		name = "socomo",
+		name = "java -jar socomo-standalone.jar",
 		description = "Analyzes source code composition of a java project.",
+		sortOptions = false,
 		mixinStandardHelpOptions = true,
 		versionProvider = SocomoMain.ManifestVersionProvider.class
 )
@@ -34,21 +35,21 @@ class SocomoMain implements Callable<Void> {
 	@Parameters(
 			paramLabel = "INPUT",
 			index = "0", arity = "1",
-			description = "a *.jar file or directory with *.class files to be analyzed"
+			description = "*.jar file or directory with *.class files to be analyzed."
 	)
 	private File input;
 
 	@Option(
 			names = { "-o", "--output" },
 			paramLabel = "DIR",
-			description = "the directory to which socomo.html will be written",
+			description = "Directory to which socomo.html will be written.",
 			defaultValue = "."
 	)
 	private File output;
 
 	@Option(
 			names = { "-d", "--display" },
-			description = "automatically opens created socomo.html file in the browser"
+			description = "Automatically open created socomo.html file in the browser."
 	)
 	private boolean display;
 
@@ -92,8 +93,8 @@ class SocomoMain implements Callable<Void> {
 		@Override
 		public String[] getVersion() {
 			String version = SocomoMain.class.getPackage().getImplementationVersion();
-			version = firstNonBlank(version, "unknown");
-			return new String[] { version };
+			version = firstNonBlank(version, "version unknown");
+			return new String[] { "Socomo " + version };
 		}
 	}
 }

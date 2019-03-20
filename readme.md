@@ -21,10 +21,10 @@ Try it now on your code, for a project build with maven do this:
 mvn pl.gdela:socomo-maven:display
 ```
 
-Alternatively, for a jar file, download the [latest socomo]() and do this:
+Alternatively, for a jar file, download the [latest release] and do this:
 
 ```bash
-java -jar socomo.jar -d path/to/your.jar
+java -jar socomo-standalone.jar -d path/to/your.jar
 ```
 
 This will generate the `socomo.html` file and open it in the browser, where you'll see
@@ -34,8 +34,6 @@ To track changes to the composition commit the `socomo.html` file to your source
 and add [socomo-maven plugin](#maven-plugin) to your `pom.xml`. Whenever composition changes
 the build plugin will update this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
-
-[latest socomo]: https://github.com/gdela/socomo/releases/latest
 
 ## How to Read Diagrams
 
@@ -96,8 +94,19 @@ you can add it just to the parent pom, and it will be inherited by all modules:
 </plugin>
 ```
 
+## Standalone Socomo
+
+Download the [latest release] and do this to get help how to use it:
+
+```bash
+java -jar socomo-standalone-*.jar --help
+```
+
+
 ## Contributing
 
 Raise an [issue or enhancement request](https://github.com/gdela/socomo/issues),
 or better yet a [pull request](https://github.com/gdela/socomo/pulls).
 Contact me at [wojciech@gdela.pl]() or [@WojciechGdela](https://twitter.com/WojciechGdela).
+
+[latest release]: https://github.com/gdela/socomo/releases/latest

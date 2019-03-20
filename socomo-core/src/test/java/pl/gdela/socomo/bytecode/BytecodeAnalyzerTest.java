@@ -56,7 +56,7 @@ public class BytecodeAnalyzerTest {
 	@After
 	public void analyzeAndVerify() {
 		File fixtureRoot = new File("target/test-classes/fixture/");
-		new BytecodeAnalyzer(collector).analyze(new File(fixtureRoot, bytecodeFile));
+		new BytecodeAnalyzer(collector).analyzeFile(new File(fixtureRoot, bytecodeFile));
 		collector.verify();
 	}
 

@@ -31,19 +31,39 @@ public class SocomoFacade {
 		this.module = new Module(moduleName);
 	}
 
-	public void analyzeBytecode(File directory) {
+	/**
+	 * Analyzes bytecode found in given input.
+	 * @see BytecodeAnalyzer
+	 * @param input {@code *.jar} file or directory with {@code *.class} files
+	 */
+	public void analyzeBytecode(File input) {
 		CodemappingCollector collector = new CodemappingCollector();
-		new BytecodeAnalyzer(collector).analyzeDir(shorten(directory));
+		BytecodeAnalyzer analyzer = new BytecodeAnalyzer(collector);
+		if (input.isFile()) {
+			analyzer.analyzeJar(shorten(input));
+		} else if (input.isDirectory()) {
+			analyzer.analyzeDir(shorten(input));
+		} else {
+			throw new IllegalArgumentException(input + " is neither jar not dir");
+		}
 		codemap = collector.getCodemap().select(MAIN);
 		log.trace("codemap:\n{}", codemap.formatted());
 	}
 
+	/**
+	 * Guesses what will be the most interesting level.
+	 * @see LevelGuesser
+	 */
 	public void guessLevel() {
 		String levelName = LevelGuesser.guessLevel(codemap);
 		level = CodemapToLevel.transform(codemap, levelName);
 		log.debug("level {}:\n{}", level.name, level.formatted());
 	}
 
+	/**
+	 * Builds the composition visualizer into given file.
+	 * @param file the output file, typically named {@code socomo.html}
+	 */
 	public void visualizeInto(File file) {
 		VisualizerBuilder builder = new VisualizerBuilder();
 		builder.setModule(module);
