@@ -3,7 +3,7 @@
 Socomo is a simple tool to visualize the composition of your source code and track changes to the
 composition as you progress with the development of your java project. You can use this tool to:
 
-- Explain internal design of your modules to newcomers by showing them the diagram of component dependencies.
+- Explain internal design of your modules by showing the diagram of component dependencies.
 - Assure that architecture of your project is not being broken by seeing what new dependencies are added.
 - Brag on your blog or twitter how great the structure of your code is, proving it with the diagrams.
 
@@ -15,7 +15,7 @@ See Socomo in action on the Guava project:
 
 ## Quick Start
 
-Try it now on your code, for a project build with maven do this:
+Try it now on your code! For a project build with maven do this:
 
 ```bash
 mvn pl.gdela:socomo-maven:display
@@ -27,11 +27,11 @@ Alternatively, for a jar file, download the [latest release] and do this:
 java -jar socomo-standalone.jar -d path/to/your.jar
 ```
 
-This will generate the `socomo.html` file and open it in the browser, where you'll see
-the visualization of code structure.
+Either of the above commands will generate the `socomo.html` file and open it in the browser.
+You'll be presented with an interactive visualization of the structure of the code.
 
 To track changes to the composition commit the `socomo.html` file to your source code repository
-and add [socomo-maven plugin](#maven-plugin) to your `pom.xml`. Whenever composition changes
+and add [socomo maven plugin](#maven-plugin) to your project. Whenever composition changes
 the build plugin will update this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
 
@@ -42,12 +42,12 @@ of the project. Each subpackage at this level is a component represented as node
 Components are arranged on the diagram to form layers: a component uses other components that are
 below it, and is used by components that are above it.
 
-The actual dependencies analyzed from the bytecode are represented as edges. The wider the edge,
-the stronger is the dependency between components.
-
 <p align="center">
   <img src="example-acme.png" alt="Composition of sample e-commerce project">
 </p>
+
+The actual dependencies analyzed from the bytecode are represented as edges. The wider the edge,
+the stronger is the dependency between components.
 
 When you select a component, blue edges show outgoing dependencies pointing to components used
 by the selected one, and brown edges show incoming dependencies from the components that use
