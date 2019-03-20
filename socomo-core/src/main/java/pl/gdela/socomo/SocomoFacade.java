@@ -15,6 +15,8 @@ import pl.gdela.socomo.composition.LevelGuesser;
 import pl.gdela.socomo.composition.Module;
 import pl.gdela.socomo.visualizer.VisualizerBuilder;
 
+import static java.awt.Desktop.getDesktop;
+import static org.apache.commons.lang3.Validate.validState;
 import static pl.gdela.socomo.codemap.Origin.MAIN;
 
 /**
@@ -26,6 +28,7 @@ public class SocomoFacade {
 	private final Module module;
 	private Codemap codemap;
 	private Level level;
+	private File output;
 
 	public SocomoFacade(String moduleName) {
 		this.module = new Module(moduleName);
@@ -55,6 +58,7 @@ public class SocomoFacade {
 	 * @see LevelGuesser
 	 */
 	public void guessLevel() {
+		validState(codemap != null);
 		String levelName = LevelGuesser.guessLevel(codemap);
 		level = CodemapToLevel.transform(codemap, levelName);
 		log.debug("level {}:\n{}", level.name, level.formatted());
@@ -65,10 +69,25 @@ public class SocomoFacade {
 	 * @param file the output file, typically named {@code socomo.html}
 	 */
 	public void visualizeInto(File file) {
+		validState(level != null);
+		output = shorten(file);
 		VisualizerBuilder builder = new VisualizerBuilder();
 		builder.setModule(module);
 		builder.setLevel(level);
-		builder.buildInto(shorten(file));
+		builder.buildInto(output);
+	}
+
+	/**
+	 * Opens created visualizer file in the browser.
+	 */
+	public void display() {
+		validState(output != null);
+		try {
+			getDesktop().browse(output.toURI());
+		} catch (Exception e) {
+			log.warn("cannot open your browser, {}", e.getMessage());
+			log.warn("open this file yourself: {}", output);
+		}
 	}
 
 	private static File shorten(File location) {

@@ -35,9 +35,9 @@ abstract class SocomoMojo extends AbstractMojo {
 	private MavenProject mavenProject;
 
 	/**
-	 * Location of the {@code socomo.html} file to which results will be written.
+	 * Socomo instance that is being driven by this mojo.
 	 */
-	File socomoTargetFile;
+	SocomoFacade socomo;
 
 	@Override
 	public final void execute() throws MojoExecutionException {
@@ -49,14 +49,14 @@ abstract class SocomoMojo extends AbstractMojo {
 			log.warn("skipping socomo in this module, the bytecode directory is missing");
 			return;
 		}
-		socomoTargetFile = new File(mavenProject.getBasedir(), "socomo.html");
 
+		File outputFile = new File(mavenProject.getBasedir(), "socomo.html");
 		try {
 			beforeExecute();
-			SocomoFacade socomo = new SocomoFacade(mavenProject.getName());
+			socomo = new SocomoFacade(mavenProject.getName());
 			socomo.analyzeBytecode(bytecodeDirectory);
 			socomo.guessLevel();
-			socomo.visualizeInto(socomoTargetFile);
+			socomo.visualizeInto(outputFile);
 			afterExecute();
 		} catch (RuntimeException e) {
 			throw new MojoExecutionException(e.getMessage(), e);

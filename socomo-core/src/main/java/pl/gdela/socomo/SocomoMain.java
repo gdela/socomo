@@ -72,19 +72,13 @@ class SocomoMain implements Callable<Void> {
 			exit(-1);
 		}
 
-		File socomoTargetFile = new File(output.getCanonicalFile(), "socomo.html");
+		File outputFile = new File(output.getCanonicalFile(), "socomo.html");
 		SocomoFacade socomo = new SocomoFacade(input.toString().replace('\\', '/'));
 		socomo.analyzeBytecode(input);
 		socomo.guessLevel();
-		socomo.visualizeInto(socomoTargetFile);
-
+		socomo.visualizeInto(outputFile);
 		if (display) {
-			try {
-				getDesktop().browse(socomoTargetFile.toURI());
-			} catch (Exception e) {
-				log.warn("cannot open your browser, {}", e.getMessage());
-				log.warn("open this file yourself: {}", socomoTargetFile);
-			}
+			socomo.display();
 		}
 		return null;
 	}
