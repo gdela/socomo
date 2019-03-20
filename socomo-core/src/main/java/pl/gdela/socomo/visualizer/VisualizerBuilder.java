@@ -50,7 +50,7 @@ public class VisualizerBuilder {
 			template.addAsset(script("https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"));
 			template.addAsset(script("https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.min.js"));
 			template.addAsset(script("https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.min.js"));
-			// template.addAsset(script("https://cdn.jsdelivr.net/npm/cytoscape-klay@3.1.2/cytoscape-klay.min.js")); todo: needed to use local patched version, see cytoscape-klay.js
+			template.addAsset(script("https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.min.js"));
 			for (Asset asset : ownAssets(file)) {
 				template.addAsset(asset);
 			}
