@@ -90,7 +90,7 @@ you can add it just to the parent pom, so that it is inherited by all modules.
         <goal>analyze</goal>
       </goals>
       <configuration>
-        <level>pl.gdela.acme</level>
+        <level>com.example.myproject</level>
       </configuration>
     </execution>
   </executions>
