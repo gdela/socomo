@@ -16,6 +16,8 @@ import pl.gdela.socomo.composition.Module;
 import pl.gdela.socomo.visualizer.VisualizerBuilder;
 
 import static java.awt.Desktop.getDesktop;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.Validate.isTrue;
 import static org.apache.commons.lang3.Validate.validState;
 import static pl.gdela.socomo.codemap.Origin.MAIN;
 
@@ -61,6 +63,17 @@ public class SocomoFacade {
 		validState(codemap != null);
 		String levelName = LevelGuesser.guessLevel(codemap);
 		level = CodemapToLevel.transform(codemap, levelName);
+		log.debug("level {}:\n{}", level.name, level.formatted());
+	}
+
+	/**
+	 * Choose level to be displayed on the diagram.
+	 * @param levelName the name of the package
+	 */
+	public void chooseLevel(String levelName) {
+		validState(codemap != null);
+		level = CodemapToLevel.transform(codemap, levelName);
+		isTrue(isNotEmpty(level.components), "no code found in chosen level '%s'", levelName);
 		log.debug("level {}:\n{}", level.name, level.formatted());
 	}
 

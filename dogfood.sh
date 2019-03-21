@@ -6,7 +6,7 @@ set -o errexit -o pipefail -o noclobber -o nounset
 SOCOMO_VERSION=`grep -o '<version>.*</version>' -m 1 pom.xml | sed 's/<[^>]*>//g'`
 
 echo '~~~ Installing SoCoMo to local maven repository ~~~'
-./mvnw install -q -Dmaven.test.redirectTestOutputToFile=true -Dskip.npm | grep -v ERROR
+./mvnw install -q -Dmaven.test.redirectTestOutputToFile=true -Dskip.npm
 
 echo '~~~ Using SoCoMo standalone on the SoCoMo project itself ~~~'
 java -jar socomo-core/target/socomo-standalone-${SOCOMO_VERSION}.jar \

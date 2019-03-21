@@ -23,7 +23,7 @@ public final class LevelGuesser {
 
 	/**
 	 * Returns the level name which is most interesting for this codemap. This will be
-	 * the level under which most of the code is defined.
+	 * the java package under which most of the code is defined.
 	 */
 	public static String guessLevel(Codemap codemap) {
 		String levelName = guessLevel(codemap, "");

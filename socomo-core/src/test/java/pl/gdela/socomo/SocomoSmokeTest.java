@@ -43,10 +43,24 @@ public class SocomoSmokeTest {
 	}
 
 	@Test
+	public void explicitly_chosen_level() {
+		// when
+		socomo.analyzeBytecode(input);
+		socomo.chooseLevel("pl.gdela");
+		socomo.visualizeInto(output);
+
+		// then
+		assertThat(contentOf(output))
+				.contains("'dummy-module'") // module name
+				.contains("'pl.gdela'") // chosen level
+				.contains("socomo"); // the only component at this level
+	}
+
+	@Test
 	public void format_of_component_and_dependencies() {
 		// when
 		socomo.analyzeBytecode(input);
-		socomo.guessLevel();
+		socomo.chooseLevel("pl.gdela.socomo");
 		socomo.visualizeInto(output);
 
 		// then

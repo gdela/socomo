@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.gdela.socomo.SocomoFacade;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 /**
  * Common things for Socomo maven plugins.
  */
@@ -30,6 +32,13 @@ abstract class SocomoMojo extends AbstractMojo {
      */
 	@Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
 	private File bytecodeDirectory;
+
+	/**
+	 * The level (name of a java package) which composition will be analyzed. If not
+	 * specified, it will be guessed.
+	 */
+	@Parameter(property = "socomo.level")
+	private String level;
 
 	@Component
 	private MavenProject mavenProject;
@@ -55,7 +64,11 @@ abstract class SocomoMojo extends AbstractMojo {
 			beforeExecute();
 			socomo = new SocomoFacade(mavenProject.getName());
 			socomo.analyzeBytecode(bytecodeDirectory);
-			socomo.guessLevel();
+			if (isNotBlank(level)) {
+				socomo.chooseLevel(level);
+			} else {
+				socomo.guessLevel();
+			}
 			socomo.visualizeInto(outputFile);
 			afterExecute();
 		} catch (RuntimeException e) {

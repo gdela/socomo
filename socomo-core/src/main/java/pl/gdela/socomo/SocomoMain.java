@@ -48,6 +48,13 @@ class SocomoMain implements Callable<Void> {
 	private File output;
 
 	@Option(
+			names = { "-l", "--level" },
+			paramLabel = "PACKAGE",
+			description = "The level (name of a java package) which composition will be analyzed. If not specified, it will be guessed."
+	)
+	private String level;
+
+	@Option(
 			names = { "-d", "--display" },
 			description = "Automatically open created socomo.html file in the browser."
 	)
@@ -75,7 +82,11 @@ class SocomoMain implements Callable<Void> {
 		File outputFile = new File(output.getCanonicalFile(), "socomo.html");
 		SocomoFacade socomo = new SocomoFacade(input.toString().replace('\\', '/'));
 		socomo.analyzeBytecode(input);
-		socomo.guessLevel();
+		if (level != null) {
+			socomo.chooseLevel(level);
+		} else {
+			socomo.guessLevel();
+		}
 		socomo.visualizeInto(outputFile);
 		if (display) {
 			socomo.display();

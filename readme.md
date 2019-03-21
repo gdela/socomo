@@ -27,12 +27,12 @@ Alternatively, for a jar file, download the [latest release] and do this:
 java -jar socomo-standalone.jar -d path/to/your.jar
 ```
 
-Either of the above commands will generate the `socomo.html` file and open it in the browser.
+Either of the above commands generates the `socomo.html` file and opens it in the browser.
 You'll be presented with an interactive visualization of the structure of the code.
 
 To track changes to the composition commit the `socomo.html` file to your source code repository
 and add [socomo maven plugin](#maven-plugin) to your project. Whenever composition changes
-the build plugin will update this human-readable file, so you'll have a history of changes
+the build plugin updates this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
 
 ## How to Read Diagrams
@@ -77,8 +77,8 @@ Those principles will help you avoid your project being a [big ball of mud].
 
 ## Maven Plugin
 
-Add this to the `<build><plugins>` section in your `pom.xml` file. For multi-module projects,
-you can add it just to the parent pom, and it will be inherited by all modules:
+Add following snippet to the `<build><plugins>` section in your `pom.xml` file. For multi-module projects,
+you can add it just to the parent pom, so that it is inherited by all modules.
 
 ```xml
 <plugin>
@@ -89,10 +89,16 @@ you can add it just to the parent pom, and it will be inherited by all modules:
       <goals>
         <goal>analyze</goal>
       </goals>
+      <configuration>
+        <level>pl.gdela.acme</level>
+      </configuration>
     </execution>
   </executions>
 </plugin>
 ```
+
+The `level` property is optional, if not given it will be guessed. The plugin should be bound to a phase
+that is executed after your code has been compiled, so by default it is bound to the `package` phase.
 
 ## Standalone Socomo
 
