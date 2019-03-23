@@ -1,6 +1,7 @@
 {
   "name": "socomo",
   "version": "2.0.0",
+  "private": true,
   "description": "SoCoMo visualizer single-page app",
   "homepage": "https://github.com/gdela/socomo",
   "license": "MIT",
