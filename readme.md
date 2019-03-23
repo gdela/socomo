@@ -1,5 +1,10 @@
 # Socomo - care about the composition of your java code 
 
+![Maven Central](https://img.shields.io/maven-central/v/pl.gdela/socomo-parent.svg)
+![GitHub Release](https://img.shields.io/github/release/gdela/socomo.svg)
+![License](https://img.shields.io/github/license/gdela/socomo.svg)
+![Issues](https://img.shields.io/github/issues/gdela/socomo.svg)
+
 Socomo is a simple tool to visualize the composition of your source code and track changes to the
 composition as you progress with the development of your java project. You can use this tool to:
 
