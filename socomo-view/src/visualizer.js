@@ -4,8 +4,9 @@
  * the composition of the module to be visualized in user's browser.
  */
 
-/* global _ drawDiagram */
-/* exported socomo */
+import './visualizer.css';
+import drawDiagram from './diagram';
+/* global _ */
 
 function socomo(moduleName, composition) {
 
@@ -23,3 +24,5 @@ function socomo(moduleName, composition) {
 
 	drawDiagram(document.getElementById('main-diagram'), level);
 }
+
+window.socomo = socomo;

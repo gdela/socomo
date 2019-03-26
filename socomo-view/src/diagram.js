@@ -2,8 +2,8 @@
  * Drawing and Controls of the composition diagram.
  */
 
-/* global _ cytoscape diagramStyle diagramLayout */
-/* exported drawDiagram */
+import { diagramLayout, diagramStyle } from './diagram-skin';
+/* global _ cytoscape */
 
 function drawDiagram(diagramContainer, level) {
 
@@ -74,3 +74,5 @@ function drawDiagram(diagramContainer, level) {
 		node.incomers().removeClass('highlight-ingoer');
 	});
 }
+
+export default drawDiagram;
