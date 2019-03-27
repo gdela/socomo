@@ -1,27 +1,47 @@
 package pl.gdela.socomo.visualizer;
 
-import static pl.gdela.socomo.visualizer.Asset.Type.STYLE;
 import static pl.gdela.socomo.visualizer.Asset.Type.SCRIPT;
+import static pl.gdela.socomo.visualizer.Asset.Type.SCRIPT_CONTENT;
+import static pl.gdela.socomo.visualizer.Asset.Type.STYLE;
+import static pl.gdela.socomo.visualizer.Asset.Type.STYLE_CONTENT;
 
 /**
  * An HTML asset, like stylesheet or javascript.
  */
 class Asset {
 	final Type type;
-	final String url;
+	String url;
+	String content;
 
-	private Asset(Type type, String url) {
+	private Asset(Type type) {
 		this.type = type;
-		this.url = url;
 	}
 
 	static Asset style(String url) {
-		return new Asset(STYLE, url);
+		return new Asset(STYLE).withUrl(url);
 	}
 
 	static Asset script(String url) {
-		return new Asset(SCRIPT, url);
+		return new Asset(SCRIPT).withUrl(url);
 	}
 
-	enum Type { STYLE, SCRIPT }
+	static Asset styleContent(String content) {
+		return new Asset(STYLE_CONTENT).withContent(content);
+	}
+
+	static Asset scriptContent(String content) {
+		return new Asset(SCRIPT_CONTENT).withContent(content);
+	}
+
+	private Asset withUrl(String url) {
+		this.url = url;
+		return this;
+	}
+
+	private Asset withContent(String content) {
+		this.content = content;
+		return this;
+	}
+
+	enum Type { STYLE, SCRIPT, STYLE_CONTENT, SCRIPT_CONTENT }
 }

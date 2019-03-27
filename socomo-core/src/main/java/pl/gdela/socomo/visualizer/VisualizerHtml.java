@@ -11,6 +11,7 @@ import pl.gdela.socomo.composition.Module;
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
 import static org.apache.commons.lang3.StringUtils.repeat;
+import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.text.StringEscapeUtils.escapeEcmaScript;
 import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
@@ -69,6 +70,16 @@ class VisualizerHtml {
 					break;
 				case SCRIPT:
 					out("<script src='%s'></script>", asset.url);
+					break;
+				case STYLE_CONTENT:
+					out("<style>");
+					for (String line : split(asset.content, '\n')) out(line);
+					out("</style>");
+					break;
+				case SCRIPT_CONTENT:
+					out("<script>");
+					for (String line : split(asset.content, '\n')) out(line);
+					out("</script>");
 					break;
 				default:
 					throw new IllegalArgumentException("unsupported asset type " + asset.type);

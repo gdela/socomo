@@ -72,41 +72,7 @@
 	</dependencies>
 
 	<build>
-		<!-- todo: remove resources filtering after using gulp local serve, read version straight from pom then -->
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
 		<plugins>
-			<plugin>
-				<groupId>com.github.eirslett</groupId>
-				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.7.5</version>
-				<executions>
-					<execution>
-						<id>install node and npm</id>
-						<goals>
-							<goal>install-node-and-npm</goal>
-							<goal>npm</goal>
-						</goals>
-						<phase>package</phase>
-						<configuration>
-							<nodeVersion>v10.14.2</nodeVersion>
-							<arguments>install</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>build with gulp</id>
-						<goals><goal>gulp</goal></goals>
-						<phase>package</phase>
-						<configuration>
-							<arguments>build</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>

@@ -2,13 +2,8 @@ package pl.gdela.socomo.visualizer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +11,11 @@ import pl.gdela.socomo.composition.Level;
 import pl.gdela.socomo.composition.Module;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.io.FileUtils.listFiles;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
-import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static pl.gdela.socomo.visualizer.Asset.script;
+import static pl.gdela.socomo.visualizer.Asset.scriptContent;
 import static pl.gdela.socomo.visualizer.Asset.style;
 
 /**
@@ -51,7 +46,7 @@ public class VisualizerBuilder {
 			template.addAsset(script("https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.min.js"));
 			template.addAsset(script("https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.min.js"));
 			template.addAsset(script("https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.min.js"));
-			for (Asset asset : ownAssets(file)) {
+			for (Asset asset : ownAssets()) {
 				template.addAsset(asset);
 			}
 			String visualizer = template.render();
@@ -73,66 +68,42 @@ public class VisualizerBuilder {
 		writeStringToFile(file, visualizer, UTF_8);
 	}
 
-	private List<Asset> ownAssets(File visualizerFile) throws IOException {
-		BuilderProperties props = BuilderProperties.read();
-		if (props.socomoVersion.contains("SNAPSHOT")) {
+	private List<Asset> ownAssets() {
+		String socomoVersion = socomoVersion();
+		if (socomoVersion.contains("SNAPSHOT") || socomoVersion.equals("unknown")) {
 			log.info("snapshot build of socomo discovered");
-			return localOwnAssets(props.assetsLocation, visualizerFile);
+			return localOwnAssets(socomoVersion);
 		} else {
 			log.debug("packed release of socomo discovered");
-			return remoteOwnAssets(props.socomoVersion);
+			return remoteOwnAssets(socomoVersion);
 		}
 	}
 
 	private List<Asset> remoteOwnAssets(String socomoVersion) {
 		List<Asset> assets = new ArrayList<>();
 		String baseUrl = "https://cdn.jsdelivr.net/gh/gdela/socomo@" + socomoVersion;
-		assets.add(script(baseUrl + "/dist/bundle.min.js"));
-		assets.add(style(baseUrl + "/dist/bundle.min.css"));
+		assets.add(script(baseUrl + "/socomo-view/dist/bundle.js"));
+		assets.add(style(baseUrl + "/socomo-view/dist/bundle.css"));
 		return assets;
 	}
 
-	private List<Asset> localOwnAssets(File assetsLocation, File visualizerFile) {
-		log.info("using assets from {}", assetsLocation);
-		if (!assetsLocation.isDirectory()) {
-			String message = "snapshot assets directory not found: ";
-			message += "either use released version of socomo, or build snapshot version of socomo yourself";
-			throw new IllegalStateException(message);
-		}
-		Collection<File> assetFiles = listFiles(assetsLocation, new String[]{"js", "css"}, false);
+	private List<Asset> localOwnAssets(String socomoVersion) {
 		List<Asset> assets = new ArrayList<>();
-		for (File assetFile : assetFiles) {
-			String extension = getExtension(assetFile.getName());
-			if (extension.equals("js")) {
-				assets.add(script(shortPath(visualizerFile, assetFile)));
-			}
-			if (extension.equals("css")) {
-				assets.add(style(shortPath(visualizerFile, assetFile)));
-			}
-		}
+		String baseUrl = "http://localhost:8086";
+		assets.add(script(baseUrl + "/bundle.js"));
+		assets.add(style(baseUrl + "/bundle.css"));
+		String note;
+		note  = "if (typeof socomo === 'undefined') document.write(\n";
+		note += "  'Socomo "+socomoVersion+", an in-development version of Socomo, was used to generate this file. To view it you ' +\n";
+		note += "  'need to be running `npm --prefix socomo-view run serve` in your local clone of Socomo. Hit Ctrl+U for raw view.'\n";
+		note += ")";
+		assets.add(scriptContent(note));
 		return assets;
 	}
 
-	private static class BuilderProperties {
-		private String socomoVersion;
-		private File assetsLocation;
-		static BuilderProperties read() throws IOException {
-			URL propsFileUrl = BuilderProperties.class.getResource("builder.properties");
-			Properties propsInFile = new Properties();
-			try (InputStream propertiesStream = propsFileUrl.openStream()) {
-				propsInFile.load(propertiesStream);
-			}
-			BuilderProperties props = new BuilderProperties();
-			props.socomoVersion = propsInFile.getProperty("socomo-version");
-			File snapshotAssetsRoot = new File(propsInFile.getProperty("snapshot-assets-root"));
-			props.assetsLocation = new File(snapshotAssetsRoot, BuilderProperties.class.getPackage().getName().replace('.', '/'));
-			return props;
-		}
-	}
-
-	private static String shortPath(File from, File to) {
-		Path fromPath = from.toPath().toAbsolutePath().getParent();
-		Path toPath = to.toPath().toAbsolutePath();
-		return fromPath.relativize(toPath).toString();
+	private String socomoVersion() {
+		// todo: move to utils/SocomoVersion.get() instead of unknown read from pom.xml
+		String version = getClass().getPackage().getImplementationVersion();
+		return firstNonBlank(version, "unknown");
 	}
 }
