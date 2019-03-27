@@ -11,11 +11,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.IVersionProvider;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import pl.gdela.socomo.visualizer.SocomoVersion;
 
-import static java.awt.Desktop.getDesktop;
 import static java.lang.System.err;
 import static java.lang.System.exit;
-import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 
 /**
  * Main class to execute SoCoMo analysis. This is rarely used, rather the maven/gradle plugins are used.
@@ -97,9 +96,7 @@ class SocomoMain implements Callable<Void> {
 	static class ManifestVersionProvider implements IVersionProvider {
 		@Override
 		public String[] getVersion() {
-			String version = SocomoMain.class.getPackage().getImplementationVersion();
-			version = firstNonBlank(version, "version unknown");
-			return new String[] { "Socomo " + version };
+			return new String[] { "Socomo " + SocomoVersion.get() };
 		}
 	}
 }

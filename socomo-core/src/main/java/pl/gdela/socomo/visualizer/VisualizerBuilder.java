@@ -13,7 +13,6 @@ import pl.gdela.socomo.composition.Module;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
-import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static pl.gdela.socomo.visualizer.Asset.script;
 import static pl.gdela.socomo.visualizer.Asset.scriptContent;
 import static pl.gdela.socomo.visualizer.Asset.style;
@@ -69,8 +68,8 @@ public class VisualizerBuilder {
 	}
 
 	private List<Asset> ownAssets() {
-		String socomoVersion = socomoVersion();
-		if (socomoVersion.contains("SNAPSHOT") || socomoVersion.equals("unknown")) {
+		String socomoVersion = SocomoVersion.get();
+		if (socomoVersion.contains("SNAPSHOT")) {
 			log.info("snapshot build of socomo discovered");
 			return localOwnAssets(socomoVersion);
 		} else {
@@ -82,16 +81,16 @@ public class VisualizerBuilder {
 	private List<Asset> remoteOwnAssets(String socomoVersion) {
 		List<Asset> assets = new ArrayList<>();
 		String baseUrl = "https://cdn.jsdelivr.net/gh/gdela/socomo@" + socomoVersion;
-		assets.add(script(baseUrl + "/socomo-view/dist/bundle.js"));
 		assets.add(style(baseUrl + "/socomo-view/dist/bundle.css"));
+		assets.add(script(baseUrl + "/socomo-view/dist/bundle.js"));
 		return assets;
 	}
 
 	private List<Asset> localOwnAssets(String socomoVersion) {
 		List<Asset> assets = new ArrayList<>();
 		String baseUrl = "http://localhost:8086";
-		assets.add(script(baseUrl + "/bundle.js"));
 		assets.add(style(baseUrl + "/bundle.css"));
+		assets.add(script(baseUrl + "/bundle.js"));
 		String note;
 		note  = "if (typeof socomo === 'undefined') document.write(\n";
 		note += "  'Socomo "+socomoVersion+", an in-development version of Socomo, was used to generate this file. To view it you ' +\n";
@@ -101,9 +100,4 @@ public class VisualizerBuilder {
 		return assets;
 	}
 
-	private String socomoVersion() {
-		// todo: move to utils/SocomoVersion.get() instead of unknown read from pom.xml
-		String version = getClass().getPackage().getImplementationVersion();
-		return firstNonBlank(version, "unknown");
-	}
 }
