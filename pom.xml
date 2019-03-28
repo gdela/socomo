@@ -48,6 +48,7 @@
 
 	<modules>
 		<module>socomo-core</module>
+		<module>socomo-view</module>
 		<module>socomo-maven</module>
 	</modules>
 
@@ -153,6 +154,7 @@
 						<version>3.0.1</version>
 						<configuration>
 							<quiet>true</quiet>
+							<additionalJOption>-Xdoclint:none</additionalJOption>
 						</configuration>
 						<executions>
 							<execution>
