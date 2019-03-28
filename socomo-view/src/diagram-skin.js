@@ -2,8 +2,6 @@
  * Style and Layout of the composition diagrams.
  */
 
-/* global cytoscape */
-
 const diagramLayout = {
 	name: 'klay', // todo: choose between dagre and klay, check also BRANDES_KOEPF node placement
 	fit: true,

@@ -1,13 +1,11 @@
 /* eslint-disable */
 
 const path = require('path');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const StyleLintPlugin = require('stylelint-webpack-plugin');
 
 module.exports = {
 	entry: './src/visualizer.js',
-	output: {
-		filename: 'bundle.js',
-		path: path.resolve(__dirname, 'dist')
-	},
 	devServer: {
 		port: 8086,
 		overlay: {
@@ -15,6 +13,20 @@ module.exports = {
 			warnings: true
 		}
 	},
+	output: {
+		filename: 'bundle.js',
+		path: path.resolve(__dirname, 'dist')
+	},
+	plugins: [
+		new MiniCssExtractPlugin({
+			filename: 'bundle.css'
+		}),
+		new StyleLintPlugin({
+			context: "src",
+			files: '**/*.css',
+			syntax: 'scss'
+		})
+	],
 	module: {
 		rules: [
 			{
@@ -40,7 +52,7 @@ module.exports = {
 				test: /\.(scss|css)$/,
 				include: [path.resolve(__dirname, 'src')],
 				use: [
-					'style-loader',
+					MiniCssExtractPlugin.loader,
 					'css-loader',
 					'sass-loader'
 				]

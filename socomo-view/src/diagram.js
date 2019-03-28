@@ -3,7 +3,7 @@
  */
 
 import { diagramLayout, diagramStyle } from './diagram-skin';
-/* global _ cytoscape */
+/* global _ */
 
 function drawDiagram(diagramContainer, level) {
 
