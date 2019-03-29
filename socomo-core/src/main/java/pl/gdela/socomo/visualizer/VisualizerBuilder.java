@@ -93,8 +93,9 @@ public class VisualizerBuilder {
 		assets.add(script(baseUrl + "/bundle.js"));
 		String note;
 		note  = "if (typeof socomo === 'undefined') document.write(\n";
-		note += "  'Socomo "+socomoVersion+", an in-development version of Socomo, was used to generate this file. To view it you ' +\n";
-		note += "  'need to be running `npm --prefix socomo-view run serve` in your local clone of Socomo. Hit Ctrl+U for raw view.'\n";
+		note += "  '<i>Socomo "+socomoVersion+", an in-development version of Socomo, was used to generate this file. To view it ' +\n";
+		note += "  'you need to be running `npm --prefix socomo-view run serve` in your local clone of Socomo project.</i>' +\n";
+		note += "  '<style>script{display:block;white-space:pre;font-family:monospace;}i{color:red;}</style>'\n";
 		note += ")";
 		assets.add(scriptContent(note));
 		return assets;
