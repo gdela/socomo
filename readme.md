@@ -18,6 +18,7 @@ See Socomo in action on the Guava project:
   <img src="example-guava.gif" alt="Composition of Guava viewed in Socomo">
 </p>
 
+
 ## Quick Start
 
 Try it now on your code! For a project build with maven do this:
@@ -36,9 +37,10 @@ Either of the above commands generates the `socomo.html` file and opens it in th
 You'll be presented with an interactive visualization of the structure of the code.
 
 To track changes to the composition commit the `socomo.html` file to your source code repository
-and add [socomo maven plugin](#maven-plugin) to your project. Whenever composition changes
+and add [socomo maven plugin](#socomo-maven-plugin) to your project. Whenever composition changes
 the build plugin updates this human-readable file, so you'll have a history of changes
 in the most convenient place - in your source code repository.
+
 
 ## How to Read Diagrams
 
@@ -58,6 +60,7 @@ When you select a component, blue edges show outgoing dependencies pointing to c
 by the selected one, and brown edges show incoming dependencies from the components that use
 the selected one. Red edges are dependencies that point upwards, against the layers, and thus
 are the cause of a cyclic dependency between two or more components.
+
 
 ## Best Practices for Composition
 
@@ -80,7 +83,8 @@ Those principles will help you avoid your project being a [big ball of mud].
 [cyclic dependencies]: https://lattix.com/blog/2017/07/26/why-cyclic-dependencies-are-bad
 [big ball of mud]: http://www.mamuz.de/article/from-big-ball-of-mud-to-emergent-design/0Pw682Kxk
 
-## Maven Plugin
+
+## Socomo Maven Plugin
 
 Add following snippet to the `<build><plugins>` section in your `pom.xml` file. For multi-module projects,
 you can add it just to the parent pom, so that it is inherited by all modules.
@@ -105,7 +109,8 @@ you can add it just to the parent pom, so that it is inherited by all modules.
 The `level` property is optional, if not given it will be guessed. The plugin should be bound to a phase
 that is executed after your code has been compiled, so by default it is bound to the `package` phase.
 
-## Standalone Socomo
+
+## Socomo Standalone
 
 Download the [latest release] and do this to get help how to use it:
 
@@ -120,4 +125,18 @@ Raise an [issue or enhancement request](https://github.com/gdela/socomo/issues),
 or better yet a [pull request](https://github.com/gdela/socomo/pulls).
 Contact me at [wojciech@gdela.pl]() or [@WojciechGdela](https://twitter.com/WojciechGdela).
 
+To develop Socomo you need [Maven] and [Node/Npm] installed on your machine. Then:
+1. Run `mvn install` to install a snapshot version of Socomo in your local maven repository.
+2. Use [socomo maven plugin](#socomo-maven-plugin) with the snapshot version
+   or [socomo standalone](#socomo-standalone) from `socomo-core/target` directory
+   to produce a `socomo.html` file.
+3. Optionally you can use the `dogfood.sh` or `catfood.sh` scripts that perform both of the above at once.
+4. Run `npm --prefix socomo-view run serve` to start serving `bundle.js` and `bundle.css` asset files.
+5. Open the generated `socomo.html` file in the browser. Assets can be developed in-place, the browser
+   will automatically reload them.
+
+
+<!-- Common Links -->
 [latest release]: https://github.com/gdela/socomo/releases/latest
+[maven]: https://maven.apache.org/
+[node/npm]: https://nodejs.org/

@@ -23,7 +23,7 @@ module.exports = {
 		}),
 		new StyleLintPlugin({
 			context: "src",
-			files: '**/*.css',
+			files: '**/*.scss',
 			syntax: 'scss'
 		})
 	],
@@ -49,7 +49,7 @@ module.exports = {
 
 			},
 			{
-				test: /\.(scss|css)$/,
+				test: /\.scss$/,
 				include: [path.resolve(__dirname, 'src')],
 				use: [
 					MiniCssExtractPlugin.loader,

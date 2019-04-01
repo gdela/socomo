@@ -16,6 +16,40 @@
 		Javascripts and stylesheets that do the visualization of socomo.html files in the browser.
 	</description>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>install node and npm</id>
+						<goals>
+							<goal>install-node-and-npm</goal>
+							<goal>npm</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<nodeVersion>v10.14.2</nodeVersion>
+							<arguments>install</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>compile dist assets</id>
+						<!-- dry run of production build, without saving assets to dist directory -->
+						<goals>
+							<goal>webpack</goal>
+						</goals>
+						<phase>compile</phase>
+						<configuration>
+							<arguments>--mode production --plugin disable-output-webpack-plugin</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<profiles>
 		<profile>
 			<id>release</id>
@@ -24,22 +58,10 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.7.5</version>
 						<executions>
 							<execution>
-								<id>install node and npm</id>
-								<goals>
-									<goal>install-node-and-npm</goal>
-									<goal>npm</goal>
-								</goals>
-								<phase>package</phase>
-								<configuration>
-									<nodeVersion>v10.14.2</nodeVersion>
-									<arguments>install</arguments>
-								</configuration>
-							</execution>
-							<execution>
 								<id>build dist assets</id>
+								<!-- save assets to dist directory for serving via jsdelivr.com -->
 								<goals>
 									<goal>webpack</goal>
 								</goals>

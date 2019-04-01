@@ -4,7 +4,7 @@
  * the composition of the module to be visualized in user's browser.
  */
 
-import './visualizer.css';
+import './visualizer.scss';
 import drawDiagram from './diagram';
 /* global _ */
 
