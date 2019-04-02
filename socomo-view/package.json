@@ -36,6 +36,7 @@
     "webpack-dev-server": "^3.2.1"
   },
   "dependencies": {
-    "cytoscape": "^3.2.22"
+    "cytoscape": "^3.2.22",
+    "normalize.css": "^8.0.1"
   }
 }

@@ -4,6 +4,7 @@
  * the composition of the module to be visualized in user's browser.
  */
 
+import 'normalize.css';
 import './visualizer.scss';
 import drawDiagram from './diagram';
 
