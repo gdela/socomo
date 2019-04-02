@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
     <version>2.1-SNAPSHOT</version>
 
-    <name>SoCoMo</name>
+    <name>Socomo</name>
 	<description>
 		Tool for visualizing and analyzing source code modularity of a java project.
 	</description>

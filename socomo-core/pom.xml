@@ -11,7 +11,7 @@
 	<artifactId>socomo-core</artifactId>
 	<packaging>jar</packaging>
 
-	<name>SoCoMo Core</name>
+	<name>Socomo Core</name>
 	<description>
 		Core parts of the tool for visualizing and analyzing source code modularity of a java project.
 	</description>

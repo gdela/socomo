@@ -6,7 +6,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.PACKAGE;
 
 /**
- * Maven plugin to execute SoCoMo analysis.
+ * Maven plugin to execute Socomo analysis.
  */
 @Mojo(name = "analyze", defaultPhase = PACKAGE)
 class AnalyzeMojo extends SocomoMojo {

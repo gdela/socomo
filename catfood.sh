@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script to visualize dependencies using SoCoMo in random selection of foreign projects
+# Script to visualize dependencies using Socomo in random selection of foreign projects
 set -o errexit -o pipefail -o noclobber -o nounset
 
 mkdir -p catfood; cd catfood
@@ -8,7 +8,7 @@ if [[ "$*" = "init" ]]; then
 	echo '~~~ Setting up ancient maven for foreign projects ~~~'
 	maven_version=`grep -o '<maven.version>.*</maven.version>' -m 1 ../socomo-maven/pom.xml | sed 's/<[^>]*>//g'`
 	../mvnw -q -N io.takari:maven:wrapper -Dmaven=${maven_version}
-	echo '~~~ Downloading some projects to use SoCoMo on them ~~~'
+	echo '~~~ Downloading some projects to use Socomo on them ~~~'
 	[[ -d commons-lang ]] || git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git
 	[[ -d assertj-core ]] || git clone https://github.com/joel-costigliola/assertj-core.git
 	[[ -d fun-timekeeper ]] || git clone https://github.com/gdela/fun-timekeeper.git
@@ -29,10 +29,10 @@ SOCOMO_VERSION=`grep -o '<version>.*</version>' -m 1 ../pom.xml | sed 's/<[^>]*>
 MAVEN_GOALS=${@:-socomo}
 MAVEN_GOALS=${MAVEN_GOALS/socomo/pl.gdela:socomo-maven:${SOCOMO_VERSION}:analyze}
 
-echo '~~~ Installing SoCoMo to local maven repository ~~~'
+echo '~~~ Installing Socomo to local maven repository ~~~'
 ../mvnw -f ../pom.xml install -q -Dmaven.test.redirectTestOutputToFile=true | grep -v '^\[ERROR\]\s*$'
 
-echo '~~~ Using SoCoMo on foreign projects ~~~'
+echo '~~~ Using Socomo on foreign projects ~~~'
 mkdir -p logs; rm logs/*.log
 echo "Will do 'mvn $MAVEN_GOALS' on projects"
 echo "Logs will be stored in './catfood/logs' directory"

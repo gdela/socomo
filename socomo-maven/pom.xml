@@ -11,7 +11,7 @@
     <artifactId>socomo-maven</artifactId>
     <packaging>maven-plugin</packaging>
 
-	<name>SoCoMo Maven Plugin</name>
+	<name>Socomo Maven Plugin</name>
 	<description>
 		Maven plugin for visualizing and analyzing source code modularity of a java project.
 	</description>

@@ -4,7 +4,7 @@ package pl.gdela.socomo.maven;
 import org.apache.maven.plugins.annotations.Mojo;
 
 /**
- * Maven plugin to execute SoCoMo analysis and display results in the browser.
+ * Maven plugin to execute Socomo analysis and display results in the browser.
  */
 @Mojo(name = "display")
 class DisplayMojo extends SocomoMojo {

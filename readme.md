@@ -38,8 +38,8 @@ You'll be presented with an interactive visualization of the structure of the co
 
 To track changes to the composition commit the `socomo.html` file to your source code repository
 and add [socomo maven plugin](#socomo-maven-plugin) to your project. Whenever composition changes
-the build plugin updates this human-readable file, so you'll have a history of changes
-in the most convenient place - in your source code repository.
+the plugin updates this human-readable file, so you'll have a history of changes in the most
+convenient place - in your source code repository.
 
 
 ## How to Read Diagrams

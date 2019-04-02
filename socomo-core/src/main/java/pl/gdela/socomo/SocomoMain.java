@@ -17,7 +17,7 @@ import static java.lang.System.err;
 import static java.lang.System.exit;
 
 /**
- * Main class to execute SoCoMo analysis. This is rarely used, rather the maven/gradle plugins are used.
+ * Main class to execute Socomo analysis. This is rarely used, rather the maven/gradle plugins are used.
  */
 @Command(
 		name = "java -jar socomo-standalone.jar",

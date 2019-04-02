@@ -11,7 +11,7 @@
 	<artifactId>socomo-view</artifactId>
 	<packaging>pom</packaging>
 
-	<name>SoCoMo View</name>
+	<name>Socomo View</name>
 	<description>
 		Javascripts and stylesheets that do the visualization of socomo.html files in the browser.
 	</description>
