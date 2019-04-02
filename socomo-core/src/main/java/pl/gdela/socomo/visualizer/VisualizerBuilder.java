@@ -41,7 +41,6 @@ public class VisualizerBuilder {
 			VisualizerHtml template = new VisualizerHtml(module);
 			template.addLevel(level);
 			template.addAsset(style("https://fonts.googleapis.com/css?family=Lato:400,700"));
-			template.addAsset(script("https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"));
 			template.addAsset(script("https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.min.js"));
 			template.addAsset(script("https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.min.js"));
 			template.addAsset(script("https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.min.js"));

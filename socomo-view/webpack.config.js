@@ -58,5 +58,8 @@ module.exports = {
 				]
 			}
 		]
+	},
+	externals: {
+		cytoscape: 'cytoscape'
 	}
 };

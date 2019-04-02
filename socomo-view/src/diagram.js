@@ -2,31 +2,19 @@
  * Drawing and Controls of the composition diagram.
  */
 
-import { diagramLayout, diagramStyle } from './diagram-skin';
-/* global _ */
+import {diagramLayout, diagramStyle} from './diagram-skin';
+import cytoscape from 'cytoscape';
 
 function drawDiagram(diagramContainer, level) {
 
-	const nodes = _.map(level.components, (props, componentName) => {
-		return {data: {id: componentName}}; // cytoscape node format
+	const nodes = Object.entries(level.components).map(([componentName, props]) => {
+		return {data: {id: componentName, size: props.size}}; // cytoscape node format
 	});
 
-	const edges = _.map(level.dependencies, (props, dependencyName) => {
+	const edges = Object.entries(level.dependencies).map(([dependencyName, props]) => {
 		const [from, to] = dependencyName.split(' -> ');
 		return {data: {source: from, target: to, strength: props.strength}}; // cytoscape edge format
 	});
-
-	/* todo: in future we will support multiple diagrams per level
-	var diagram = level.diagrams[0];
-	var diagramElements = {
-		nodes: _.filter(nodes, function (node) {
-			return !diagram.packages || _.includes(diagram.packages, node.data.id)
-		}),
-		edges: _.filter(edges, function (edge) {
-			return !diagram.packages || _.includes(diagram.packages, edge.data.source) && _.includes(diagram.packages, edge.data.target);
-		})
-	}; */
-	const diagramElements = {nodes, edges};
 
 	// draw the diagram
 	const cy = cytoscape({
@@ -37,7 +25,7 @@ function drawDiagram(diagramContainer, level) {
 		autounselectify: true,
 		wheelSensitivity: 0.3,
 		maxZoom: 1.5,
-		elements: diagramElements
+		elements: {nodes, edges}
 	});
 
 	// workaround for google font not used initially by the browser for node labels, only when the graph is redrawn

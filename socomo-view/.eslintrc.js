@@ -4,9 +4,6 @@ module.exports = {
 		'es6': true
 	},
 	'extends': 'eslint:recommended',
-	'globals': {
-		'cytoscape': 'readonly'
-	},
 	'parserOptions': {
 		'ecmaVersion': 2018,
 		'sourceType': 'module'

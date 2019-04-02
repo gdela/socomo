@@ -6,13 +6,12 @@
 
 import './visualizer.scss';
 import drawDiagram from './diagram';
-/* global _ */
 
 function socomo(moduleName, composition) {
 
 	// todo: currently we show only one diagram for the first level
-	const levelName = _.keys(composition)[0];
-	const level = _.values(composition)[0];
+	const levelName = Object.keys(composition)[0];
+	const level = Object.values(composition)[0];
 
 	document.body.innerHTML = `
 	<div id="header-container">
