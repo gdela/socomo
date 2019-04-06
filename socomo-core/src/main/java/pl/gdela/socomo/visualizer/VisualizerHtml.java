@@ -16,7 +16,7 @@ import static org.apache.commons.text.StringEscapeUtils.escapeEcmaScript;
 import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 /**
- * Template for generating html file which "launches" visualizer single-page app.
+ * Template for generating socomo.html files.
  *
  * <p>We do not use freemarker, mustache or any other template, because we need complete
  * control over every space, newline, etc., as the generated html file is supposed to be
@@ -62,6 +62,7 @@ class VisualizerHtml {
 	private void printHead() {
 		out("<head>");
 		indent(+4);
+		out("<meta charset='utf-8'/>");
 		out("<title>Socomo: %s</title>", escapeHtml(module.name));
 		for (Asset asset : assets) {
 			switch (asset.type) {
@@ -92,21 +93,21 @@ class VisualizerHtml {
 	private void printBody() {
 		out("<body>");
 		out("<script>");
-		out("socomo(%s, { // module", ecmaString(module.name));
+		out("composition = [{ module: %s },", ecmaString(module.name));
 		for (Level level : levels) {
 			out("");
 			printLevel(level);
 		}
 		out("");
-		out("});");
+		out("];");
 		out("</script>");
 		out("</body>");
 	}
 
 	private void printLevel(Level level) {
-		out("[%s]: // level", ecmaString(level.name));
 		out("{");
 		indent(+2);
+		out("level: %s,", ecmaString(level.name));
 		printComponents(level);
 		printDependencies(level);
 		indent(-2);

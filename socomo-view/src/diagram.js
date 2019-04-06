@@ -1,5 +1,5 @@
 /*
- * Drawing and Controls of the composition diagram.
+ * Drawing and controls of the composition diagram.
  */
 
 import {diagramLayout, diagramStyle} from './diagram-skin';

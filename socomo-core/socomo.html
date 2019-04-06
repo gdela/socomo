@@ -4,12 +4,8 @@
 <html lang='en'>
 <head>
     <title>Socomo: Socomo Core</title>
-    <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet'>
-    <script src='https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.min.js'></script>
-    <link href='http://localhost:8086/bundle.css' rel='stylesheet'>
-    <script src='http://localhost:8086/bundle.js'></script>
+    <link href='http://localhost:8086/index.css' rel='stylesheet'>
+    <script src='http://localhost:8086/index.js'></script>
     <script>
     if (typeof socomo === 'undefined') document.write(
       '<i>Socomo 2.1-SNAPSHOT, an in-development version, was used to generate this file. To view it ' +
@@ -20,10 +16,10 @@
 </head>
 <body>
 <script>
-socomo('Socomo Core', { // module
+composition = [{ module: 'Socomo Core' },
 
-['pl.gdela.socomo']: // level
 {
+  level: 'pl.gdela.socomo',
   components: {
     '[root]'                             :{ size: 0.3 },
     'bytecode'                           :{ size: 0.9 },
@@ -43,7 +39,7 @@ socomo('Socomo Core', { // module
   },
 },
 
-});
+];
 </script>
 </body>
 </html>

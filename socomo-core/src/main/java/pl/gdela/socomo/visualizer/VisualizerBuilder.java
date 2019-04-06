@@ -18,7 +18,8 @@ import static pl.gdela.socomo.visualizer.Asset.scriptContent;
 import static pl.gdela.socomo.visualizer.Asset.style;
 
 /**
- * Builds the visualizer single-page app for given module.
+ * Builds the html file with composition analysis results. The file, typically
+ * named socomo.html, is also used to "launch" visualizer single-page app.
  */
 public class VisualizerBuilder {
 	private static final Logger log = LoggerFactory.getLogger(VisualizerBuilder.class);
@@ -40,11 +41,7 @@ public class VisualizerBuilder {
 		try {
 			VisualizerHtml template = new VisualizerHtml(module);
 			template.addLevel(level);
-			template.addAsset(style("https://fonts.googleapis.com/css?family=Lato:400,700"));
-			template.addAsset(script("https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.min.js"));
-			template.addAsset(script("https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.min.js"));
-			template.addAsset(script("https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.min.js"));
-			for (Asset asset : ownAssets()) {
+			for (Asset asset : assets()) {
 				template.addAsset(asset);
 			}
 			String visualizer = template.render();
@@ -66,30 +63,30 @@ public class VisualizerBuilder {
 		writeStringToFile(file, visualizer, UTF_8);
 	}
 
-	private List<Asset> ownAssets() {
+	private List<Asset> assets() {
 		String socomoVersion = SocomoVersion.get();
-		if (socomoVersion.contains("SNAPSHOT")) {
-			log.info("snapshot build of socomo discovered");
-			return localOwnAssets(socomoVersion);
+		if (!socomoVersion.contains("SNAPSHOT")) {
+			log.debug("release version of socomo discovered");
+			return productionAssets(socomoVersion);
 		} else {
-			log.debug("packed release of socomo discovered");
-			return remoteOwnAssets(socomoVersion);
+			log.info("snapshot version of socomo discovered");
+			return developmentAssets(socomoVersion);
 		}
 	}
 
-	private List<Asset> remoteOwnAssets(String socomoVersion) {
+	private List<Asset> productionAssets(String socomoVersion) {
 		List<Asset> assets = new ArrayList<>();
-		String baseUrl = "https://cdn.jsdelivr.net/gh/gdela/socomo@" + socomoVersion;
-		assets.add(style(baseUrl + "/socomo-view/dist/bundle.css"));
-		assets.add(script(baseUrl + "/socomo-view/dist/bundle.js"));
+		String baseUrl = "https://cdn.jsdelivr.net/gh/gdela/socomo@" + socomoVersion + "/socomo-view/dist";
+		assets.add(style(baseUrl + "/index.css"));
+		assets.add(script(baseUrl + "/index.js"));
 		return assets;
 	}
 
-	private List<Asset> localOwnAssets(String socomoVersion) {
+	private List<Asset> developmentAssets(String socomoVersion) {
 		List<Asset> assets = new ArrayList<>();
 		String baseUrl = "http://localhost:8086";
-		assets.add(style(baseUrl + "/bundle.css"));
-		assets.add(script(baseUrl + "/bundle.js"));
+		assets.add(style(baseUrl + "/index.css"));
+		assets.add(script(baseUrl + "/index.js"));
 		String note;
 		note  = "if (typeof socomo === 'undefined') document.write(\n";
 		note += "  '<i>Socomo "+socomoVersion+", an in-development version, was used to generate this file. To view it ' +\n";

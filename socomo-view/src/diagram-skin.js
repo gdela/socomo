@@ -1,5 +1,5 @@
 /*
- * Style and Layout of the composition diagrams.
+ * Style and layout of the composition diagrams.
  */
 
 import cytoscape from 'cytoscape';

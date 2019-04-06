@@ -5,21 +5,17 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 
 module.exports = {
-	entry: './src/visualizer.js',
-	devServer: {
-		port: 8086,
-		overlay: {
-			errors: true,
-			warnings: true
-		}
+	entry: {
+		index: './src/index.js',
+		bundle: './src/main.js'
 	},
 	output: {
-		filename: 'bundle.js',
+		filename: '[name].js',
 		path: path.resolve(__dirname, 'dist')
 	},
 	plugins: [
 		new MiniCssExtractPlugin({
-			filename: 'bundle.css'
+			filename: '[name].css'
 		}),
 		new StyleLintPlugin({
 			context: "src",
@@ -59,6 +55,15 @@ module.exports = {
 		]
 	},
 	externals: {
+		// keep in sync with external assets loading in index.js
 		cytoscape: 'cytoscape'
+	},
+	devServer: {
+		port: 8086,
+		disableHostCheck: true,
+		overlay: {
+			errors: true,
+			warnings: true
+		}
 	}
 };
