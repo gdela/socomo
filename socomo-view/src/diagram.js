@@ -28,15 +28,6 @@ function drawDiagram(diagramContainer, level) {
 		elements: {nodes, edges}
 	});
 
-	// workaround for google font not used initially by the browser for node labels, only when the graph is redrawn
-	// todo: replace this diagram refresh with "font face observer", https://filamentgroup.com/lab/font-events.html
-	diagramContainer.style.visibility = 'hidden';
-	setTimeout(() => {
-		cy.elements().addClass('dummy');
-		cy.elements().removeClass('dummy');
-		diagramContainer.style.visibility = 'visible';
-	}, 10);
-
 	// mark upwards dependencies as violations
 	const upwardDependency = edge => edge.target().position('y') < edge.source().position('y');
 	cy.edges().filter(upwardDependency).addClass('violation');

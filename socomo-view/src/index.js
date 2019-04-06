@@ -6,6 +6,7 @@
 
 import 'normalize.css';
 import './index.scss';
+import FontFaceObserver from 'fontfaceobserver';
 
 function loadStyle(src) {
 	console.log('loading style ' + src);
@@ -30,16 +31,23 @@ window.addEventListener('DOMContentLoaded', () => {
 	console.log('loading assets');
 	const indexJsUrl = document.getElementsByTagName('script')[0].src;
 	const baseUrl = indexJsUrl.slice(0, indexJsUrl.lastIndexOf('/'));
+	loadStyle('https://fonts.googleapis.com/css?family=Lato:400,700');
+	const fontsLoaded = Promise.all([
+		new FontFaceObserver('Lato', { weight: 400 }).load(),
+		new FontFaceObserver('Lato', { weight: 700 }).load()
+	]);
 	// keep in sync with versions in package.json and externals declaration in webpack.config.js
 	loadScript('https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.js');
 	loadScript('https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.js');
 	loadScript('https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.js');
 	loadStyle(baseUrl + '/bundle.css');
 	loadScript(baseUrl + '/bundle.js', () => {
-		console.log('assets loaded');
-		// window.socomo comes from the bundle.js (main.js)
-		// window.composition comes from a socomo.html
-		window.socomo(window.composition);
+		fontsLoaded.then(() => {
+			console.log('assets loaded');
+			// window.socomo comes from the bundle.js (main.js)
+			// window.composition comes from a socomo.html
+			window.socomo(window.composition);
+		});
 	});
 });
 

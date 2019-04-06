@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "cytoscape": "^3.2.22",
+    "fontfaceobserver": "^2.1.0",
     "normalize.css": "^8.0.1"
   }
 }

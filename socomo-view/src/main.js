@@ -4,8 +4,8 @@
  * (via index.js) passing the composition of the module to be visualized in user's browser.
  */
 
-import drawDiagram from './diagram';
 import './main.scss';
+import drawDiagram from './diagram';
 
 function socomo(composition) {
 	console.log('drawing first diagram');
