@@ -29,12 +29,13 @@ function loadScript(src, onload) {
 
 window.addEventListener('DOMContentLoaded', () => {
 	console.log('loading assets');
+	document.body.innerHTML = '<div id="loading">Loading...</div>';
 	const indexJsUrl = document.getElementsByTagName('script')[0].src;
 	const baseUrl = indexJsUrl.slice(0, indexJsUrl.lastIndexOf('/'));
 	loadStyle('https://fonts.googleapis.com/css?family=Lato:400,700');
 	const fontsLoaded = Promise.all([
-		new FontFaceObserver('Lato', { weight: 400 }).load(),
-		new FontFaceObserver('Lato', { weight: 700 }).load()
+		new FontFaceObserver('Lato', {weight:400}).load(),
+		new FontFaceObserver('Lato', {weight:700}).load()
 	]);
 	// keep in sync with versions in package.json and externals declaration in webpack.config.js
 	loadScript('https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.js');

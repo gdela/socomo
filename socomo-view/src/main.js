@@ -8,23 +8,31 @@ import './main.scss';
 import drawDiagram from './diagram';
 
 function socomo(composition) {
-	console.log('drawing first diagram');
 
 	const module = composition[0];
 	const moduleName = module.module;
 	const level = composition[1];
 	const levelName = level.level;
 
-	document.body.innerHTML = `
+	document.body.insertAdjacentHTML('beforeend', `
 	<div id="header-container">
 		<h1>${moduleName} &nbsp;&#x276d;&nbsp; <code>${levelName}</code></h1>
 	</div>
 	<div id="diagram-container">
 		<div id="main-diagram"></div>
-	</div>`;
+	</div>`);
 
-	drawDiagram(document.getElementById('main-diagram'), level);
+	doLongTask(() => {
+		drawDiagram(document.getElementById('main-diagram'), level);
+	});
 }
 
-console.log('exposing socomo in window');
+function doLongTask(task) {
+	const message = document.getElementById('loading');
+	message.style.visibility = 'visible';
+	// the delay is to give browser a chance to render dom changes done so far
+	setTimeout(() => { task(); message.style.visibility = 'hidden'; }, 10);
+}
+
+// expose socomo function to the index.js bootstrapping code
 window.socomo = socomo;

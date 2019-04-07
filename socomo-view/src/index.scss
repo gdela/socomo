@@ -1,7 +1,35 @@
-html {
-	font-family: inherit;
+#loading {
+	z-index: 999;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	margin: auto;
+	width: 100px;
+	height: 16px;
+	padding: 10px;
+	font-style: italic;
+	font-family: sans-serif;
+	font-size: 14px;
+	text-align: center;
+	background-color: #fafafa;
+	color: #406070;
+	border-radius: 10px;
 }
 
-body {
-	font-family: inherit;
+#loading::before {
+	content: "";
+	display: inline-block;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-image: url('data:image/gif;base64,R0lGODlhDAAMAPQAANDF+9LH+9zT/OXf/O7q/ca4+8i6+9TJ/N/Y/Ovm/erl/uvm/u/r/vPx/vj2/6WP+qeS+ruq+87B/N/Y/QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFHgAAACwAAAAADAAMAAAEKxDISatjajFXm/pgMzlgqXAAZn6MtKzf4sKZpK4tQMIo4JkiymWh6VWOgAgAIfkEBQ8ABQAsAQABAAoACgAAAx1YRQIhRJUBqo3EasC2FYFXBaEINCJkYl6kMCGkJAAh+QQFDwAAACwBAAEACgAKAAAEHxCAdIw5SQJUukeTJxbU6FVmZ6XFxWJsxo2gRFmYFAEAIfkEBR4AAAAsAQABAAoACgAABSIgAEwRBEWTCEhP60qjKz/k7JZ2a+bPyaO8FGsGE5FMKFEIACH5BAUPAAAALAEAAQAKAAoAAAQfEIB0jDlJAlS6R5MnFtToVWZnpcXFYmzGjaBEWZgUAQAh+QQFDwAFACwBAAEACgAKAAADHVhFAiFElQGqjcRqwLYVgVcFoQg0ImRiXqQwIaQkADs=');
+	width: 10px;
+	height: 10px;
+	padding-right: 15px;
+}
+
+#loading::after {
+	content: "";
+	padding-left: 10px;
 }
