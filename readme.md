@@ -131,7 +131,7 @@ To develop Socomo you need [Maven] and [Node/Npm] installed on your machine. The
    or [socomo standalone](#socomo-standalone) from `socomo-core/target` directory
    to produce a `socomo.html` file.
 3. Optionally you can use the `dogfood.sh` or `catfood.sh` scripts that perform both of the above at once.
-4. Run `npm --prefix socomo-view run serve` to start serving `bundle.js` and `bundle.css` asset files.
+4. Run `npm --prefix socomo-view run serve` to start serving `*.js` and `*.css` asset files.
 5. Open the generated `socomo.html` file in the browser. Assets can be developed in-place, the browser
    will automatically reload them.
 

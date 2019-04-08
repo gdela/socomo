@@ -10,7 +10,7 @@
     "url": "https://github.com/gdela/socomo.git"
   },
   "scripts": {
-    "build": "webpack --mode production",
+    "dist": "webpack --mode production",
     "serve": "webpack-dev-server"
   },
   "devDependencies": {
