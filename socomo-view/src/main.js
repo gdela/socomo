@@ -14,13 +14,13 @@ function socomo(composition) {
 	const level = composition[1];
 	const levelName = level.level;
 
-	document.body.insertAdjacentHTML('beforeend', `
+	document.body.innerHTML += `
 	<div id="header-container">
 		<h1>${moduleName} &nbsp;&#x276d;&nbsp; <code>${levelName}</code></h1>
 	</div>
 	<div id="diagram-container">
 		<div id="main-diagram"></div>
-	</div>`);
+	</div>`;
 
 	doLongTask(() => {
 		drawDiagram(document.getElementById('main-diagram'), level);
