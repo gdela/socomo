@@ -1,5 +1,14 @@
-#loading {
+html {
+	height: 100%;
+}
+
+body {
+	height: 100%;
+}
+
+#status-message {
 	z-index: 999;
+	visibility: hidden;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -18,18 +27,32 @@
 	border-radius: 10px;
 }
 
-#loading::before {
-	content: "";
-	display: inline-block;
-	background-repeat: no-repeat;
-	background-position: center center;
-	background-image: url('data:image/gif;base64,R0lGODlhDAAMAPQAANDF+9LH+9zT/OXf/O7q/ca4+8i6+9TJ/N/Y/Ovm/erl/uvm/u/r/vPx/vj2/6WP+qeS+ruq+87B/N/Y/QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFHgAAACwAAAAADAAMAAAEKxDISatjajFXm/pgMzlgqXAAZn6MtKzf4sKZpK4tQMIo4JkiymWh6VWOgAgAIfkEBQ8ABQAsAQABAAoACgAAAx1YRQIhRJUBqo3EasC2FYFXBaEINCJkYl6kMCGkJAAh+QQFDwAAACwBAAEACgAKAAAEHxCAdIw5SQJUukeTJxbU6FVmZ6XFxWJsxo2gRFmYFAEAIfkEBR4AAAAsAQABAAoACgAABSIgAEwRBEWTCEhP60qjKz/k7JZ2a+bPyaO8FGsGE5FMKFEIACH5BAUPAAAALAEAAQAKAAoAAAQfEIB0jDlJAlS6R5MnFtToVWZnpcXFYmzGjaBEWZgUAQAh+QQFDwAFACwBAAEACgAKAAADHVhFAiFElQGqjcRqwLYVgVcFoQg0ImRiXqQwIaQkADs=');
-	width: 10px;
-	height: 10px;
-	padding-right: 15px;
+body.loading-state {
+	cursor: wait;
+	#status-message {
+		visibility: visible;
+	}
+	#status-message::before {
+		content: '';
+		display: inline-block;
+		background-repeat: no-repeat;
+		background-position: center center;
+		background-image: url('data:image/gif;base64,R0lGODlhDAAMAPQAANDF+9LH+9zT/OXf/O7q/ca4+8i6+9TJ/N/Y/Ovm/erl/uvm/u/r/vPx/vj2/6WP+qeS+ruq+87B/N/Y/QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFHgAAACwAAAAADAAMAAAEKxDISatjajFXm/pgMzlgqXAAZn6MtKzf4sKZpK4tQMIo4JkiymWh6VWOgAgAIfkEBQ8ABQAsAQABAAoACgAAAx1YRQIhRJUBqo3EasC2FYFXBaEINCJkYl6kMCGkJAAh+QQFDwAAACwBAAEACgAKAAAEHxCAdIw5SQJUukeTJxbU6FVmZ6XFxWJsxo2gRFmYFAEAIfkEBR4AAAAsAQABAAoACgAABSIgAEwRBEWTCEhP60qjKz/k7JZ2a+bPyaO8FGsGE5FMKFEIACH5BAUPAAAALAEAAQAKAAoAAAQfEIB0jDlJAlS6R5MnFtToVWZnpcXFYmzGjaBEWZgUAQAh+QQFDwAFACwBAAEACgAKAAADHVhFAiFElQGqjcRqwLYVgVcFoQg0ImRiXqQwIaQkADs=');
+		width: 10px;
+		height: 10px;
+	}
+	#status-message::after {
+		content: 'Loading...';
+		padding-left: 10px;
+	}
 }
 
-#loading::after {
-	content: "";
-	padding-left: 10px;
+body.error-state {
+	#status-message {
+		visibility: visible;
+	}
+	#status-message::after {
+		content: 'Error!';
+		color: #ff0000;
+	}
 }

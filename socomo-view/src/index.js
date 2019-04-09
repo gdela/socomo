@@ -9,47 +9,68 @@ import './index.scss';
 import FontFaceObserver from 'fontfaceobserver';
 
 function loadStyle(src) {
-	console.log('loading style ' + src);
-	const link = document.createElement('link');
-	link.href = src;
-	link.type = 'text/css';
-	link.rel = 'stylesheet';
-	document.head.appendChild(link);
+	return new Promise((resolve, reject) => {
+		console.debug('loading style ' + src);
+		const link = document.createElement('link');
+		link.href = src;
+		link.type = 'text/css';
+		link.rel = 'stylesheet';
+		link.onload = () => resolve();
+		link.onerror = () => reject(new Error('could not load ' + src));
+		document.head.appendChild(link);
+	});
 }
 
-function loadScript(src, onload) {
-	console.log('loading script ' + src);
-	const script = document.createElement('script');
-	script.src = src;
-	script.type = 'text/javascript';
-	script.async = false;
-	if (onload) script.onload = onload;
-	document.head.appendChild(script);
+function loadScript(src) {
+	return new Promise((resolve, reject) => {
+		console.debug('loading script ' + src);
+		const script = document.createElement('script');
+		script.src = src;
+		script.type = 'text/javascript';
+		script.async = false;
+		script.onload = () => resolve();
+		script.onerror = () => reject(new Error('could not load ' + src));
+		document.head.appendChild(script);
+	});
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-	console.log('loading assets');
-	document.body.innerHTML = '<div id="loading">Loading...</div>';
+	console.debug('loading assets');
+	document.body.className = 'loading-state';
+	document.body.innerHTML = '<div id="status-message"></div>';
 	const indexJsUrl = document.getElementsByTagName('script')[0].src;
 	const baseUrl = indexJsUrl.slice(0, indexJsUrl.lastIndexOf('/'));
-	loadStyle('https://fonts.googleapis.com/css?family=Lato:400,700');
-	const fontsLoaded = Promise.all([
-		new FontFaceObserver('Lato', {weight:400}).load(),
-		new FontFaceObserver('Lato', {weight:700}).load()
-	]);
-	// keep in sync with versions in package.json and externals declaration in webpack.config.js
-	loadScript('https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.js');
-	loadScript('https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.js');
-	loadScript('https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.js');
-	loadStyle(baseUrl + '/bundle.css');
-	loadScript(baseUrl + '/bundle.js', () => {
-		fontsLoaded.then(() => {
-			console.log('assets loaded');
+
+	const fontsLoaded = Promise
+		.all([
+			loadStyle('https://fonts.googleapis.com/css?family=Lato:400,700'),
+			new FontFaceObserver('Lato', {weight:400}).load(),
+			new FontFaceObserver('Lato', {weight:700}).load()
+		]).catch(error => {
+			console.warn('fonts not loaded: ' + error.message);
+		});
+
+	const scriptsLoaded = Promise
+		.all([
+			// keep in sync with versions in package.json and externals declaration in webpack.config.js
+			loadScript('https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.js'),
+			loadScript('https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.js'),
+			loadScript('https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.js'),
+			loadStyle(baseUrl + '/bundle.css'),
+			loadScript(baseUrl + '/bundle.js')
+		]);
+
+	Promise
+		.all([fontsLoaded, scriptsLoaded])
+		.then(() => {
+			console.debug('assets loaded');
 			// window.socomo comes from the bundle.js (main.js)
 			// window.composition comes from a socomo.html
 			window.socomo(window.composition);
+		}).catch(error => {
+			document.body.className = 'error-state';
+			throw error;
 		});
-	});
 });
 
 // a signal to the dev-mode script that assets are being served

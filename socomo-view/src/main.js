@@ -28,10 +28,9 @@ function socomo(composition) {
 }
 
 function doLongTask(task) {
-	const message = document.getElementById('loading');
-	message.style.visibility = 'visible';
+	document.body.className = 'loading-state';
 	// the delay is to give browser a chance to render dom changes done so far
-	setTimeout(() => { task(); message.style.visibility = 'hidden'; }, 10);
+	setTimeout(() => { task(); document.body.className = ''; }, 10);
 }
 
 // expose socomo function to the index.js bootstrapping code
