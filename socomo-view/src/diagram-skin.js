@@ -17,7 +17,7 @@ const diagramLayout = {
 	// klay - https://github.com/cytoscape/cytoscape.js-klay
 	klay: {
 		direction: 'DOWN',
-		thoroughness: 7,
+		thoroughness: 50,
 		nodePlacement: 'LINEAR_SEGMENTS',
 		cycleBreaking: 'GREEDY',
 		spacing: 8,
@@ -71,8 +71,8 @@ const diagramStyle = cytoscape.stylesheet()
 
 	.selector('edge.highlight-ingoer')
 	.css({
-		'line-color': '#a69d90',
-		'target-arrow-color': '#afa699',
+		'line-color': '#afb8a2',
+		'target-arrow-color': '#b1baa4',
 		'z-index': 1
 	})
 
