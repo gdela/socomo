@@ -62,12 +62,11 @@ class VisualizerHtml {
 	private void printHead() {
 		out("<head>");
 		indent(+4);
-		out("<meta charset='utf-8'/>");
 		out("<title>Socomo: %s</title>", escapeHtml(module.name));
 		for (Asset asset : assets) {
 			switch (asset.type) {
 				case STYLE:
-					out("<link href='%s' rel='stylesheet'>", asset.url);
+					out("<link href='%s' rel='stylesheet'/>", asset.url);
 					break;
 				case SCRIPT:
 					out("<script src='%s'></script>", asset.url);
@@ -86,12 +85,12 @@ class VisualizerHtml {
 					throw new IllegalArgumentException("unsupported asset type " + asset.type);
 			}
 		}
+		out("<meta http-equiv='content-type' content='text/html;charset=UTF-8'/>");
 		indent(-4);
 		out("</head>");
 	}
 
 	private void printBody() {
-		out("<body>");
 		out("<script>");
 		out("composition = [{ module: %s },", ecmaString(module.name));
 		for (Level level : levels) {
@@ -101,7 +100,6 @@ class VisualizerHtml {
 		out("");
 		out("];");
 		out("</script>");
-		out("</body>");
 	}
 
 	private void printLevel(Level level) {
