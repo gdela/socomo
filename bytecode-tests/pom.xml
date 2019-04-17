@@ -75,11 +75,11 @@
 						<configuration>
 							<target>
 								<mkdir dir="target/classes_java7"/>
-								<javac destdir="target/classes_java7" release="7" includeantruntime="false">
+								<javac destdir="target/classes_java7" release="7" debug="true" includeantruntime="false">
 									<src path="src/main/java7"/>
 								</javac>
 								<mkdir dir="target/classes_java8"/>
-								<javac destdir="target/classes_java8" release="8" includeantruntime="false">
+								<javac destdir="target/classes_java8" release="8" debug="true" includeantruntime="false">
 									<src path="src/main/java7"/>
 									<src path="src/main/java8"/>
 								</javac>
@@ -95,6 +95,13 @@
 					<includes>
 						<include>**/Java*TestSuite.java</include>
 					</includes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 		</plugins>

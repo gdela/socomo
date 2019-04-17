@@ -24,7 +24,6 @@ import fixture.Targets.GenericAlfa;
 import fixture.Targets.ShapeAnnotation;
 import fixture.Targets._Base;
 import fixture.Targets._GenericBase;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static pl.gdela.socomo.codemap.DepType.*;
@@ -130,7 +129,6 @@ public class Java7TestSuite extends BytecodeAnalyzerTestBase {
 				.target(IS_OF_TYPE, Float.class);
 	}
 
-	@Ignore // FIXME: fix method_with_body test for various Java versions
 	@Test
 	public void all_fields_init() {
 		analyzing("MyFields.class");
@@ -153,7 +151,6 @@ public class Java7TestSuite extends BytecodeAnalyzerTestBase {
 				.target(CALLS, GenericAlfa.class, "<init>()")
 				.target(CREATES, _GenericBase.GenericInner.class)
 				.target(CALLS, _GenericBase.GenericInner.class, "<init>()")
-				.target(CALLS, Object.class, "getClass()") // dunno why
 
 				// primitive field init
 				.target(READS_WRITES, MyFields.class, "myPrimitiveField")
@@ -206,7 +203,6 @@ public class Java7TestSuite extends BytecodeAnalyzerTestBase {
 				.noTargets();
 	}
 
-	@Ignore // FIXME: fix method_with_body test for various Java versions
 	@Test
 	public void method_with_body() {
 		analyzing("MyMethodBody.class");

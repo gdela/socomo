@@ -6,7 +6,8 @@ import java.util.function.Function;
 import fixture.MyLambdas;
 import org.junit.Test;
 
-import static pl.gdela.socomo.codemap.DepType.*;
+import static pl.gdela.socomo.codemap.DepType.RETURNS;
+import static pl.gdela.socomo.codemap.DepType.TYPE_PARAM;
 
 /**
  * The tests for analyzing bytecode produced for Java 8 runtime. Mind that probably your IDE
