@@ -43,10 +43,6 @@ class DependencyCollectorMock implements DependencyCollector {
 		return expectForSource(sourceClass, null);
 	}
 
-	// todo: add here method to specify how many times the target is expected (default would be just once)
-	// then when marking dependency - decrement the counter, if the counter is below zero fail-fast about
-	// unexpected dependency, at the verify() stage make sure that all targets have their counter at zero
-
 	DependencyCollectorMock target(DepType type, Class targetClass, String targetMember) {
 		validState(subject != null, "first set the subject");
 		expectedTargets.add(new Target(type, targetClass, targetMember));

@@ -6,8 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="socomo-core" />
+        <module name="bytecode-tests" />
         <module name="socomo-maven" />
+        <module name="socomo-core" />
       </profile>
     </annotationProcessing>
   </component>
