@@ -5,8 +5,8 @@ import java.util.function.Function;
 @SuppressWarnings("all")
 public class MyLambdas {
 
-	Function<Integer, Boolean> simpleLambda() {
-		return x -> x < 1024;
+	Function<Integer, Long> simpleLambda() {
+		return x -> x.longValue();
 	}
 
 }

@@ -30,7 +30,8 @@ MAVEN_GOALS=${@:-socomo}
 MAVEN_GOALS=${MAVEN_GOALS/socomo/pl.gdela:socomo-maven:${SOCOMO_VERSION}:analyze}
 
 echo '~~~ Installing Socomo to local maven repository ~~~'
-../mvnw -f ../pom.xml install -q -Dmaven.test.redirectTestOutputToFile=true | grep -v '^\[ERROR\]\s*$'
+../mvnw -f ../pom.xml install -Dmaven.test.redirectTestOutputToFile=true | grep -v '^\[ERROR\]\s*$'
+echo ''
 
 echo '~~~ Using Socomo on foreign projects ~~~'
 mkdir -p logs; rm logs/*.log
