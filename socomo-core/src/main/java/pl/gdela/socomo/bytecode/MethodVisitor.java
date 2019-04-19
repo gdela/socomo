@@ -11,10 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.gdela.socomo.codemap.DepType;
 
+import static org.objectweb.asm.Type.getMethodType;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 import static pl.gdela.socomo.codemap.DepType.ANNOTATED;
 import static pl.gdela.socomo.codemap.DepType.CALLS;
+import static pl.gdela.socomo.codemap.DepType.CALLS_DYNAMIC;
 import static pl.gdela.socomo.codemap.DepType.CASTS_TO;
 import static pl.gdela.socomo.codemap.DepType.CATCHES;
 import static pl.gdela.socomo.codemap.DepType.CREATES;
@@ -219,8 +221,10 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	@Override
 	public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
 		instructionCount++;
-		// fixme: split bytecode analyzer tests into two modules (java8-bytecode, java7-bytecode), then cover invoke dynamic with test
-		log.trace("ignoring dependencies in invoke dynamic {}, {}, {}, {}: not yet supported", name, desc, bsm, bsmArgs);
+		Type bootstrapMethodType = getMethodType(desc); // the method that returns instance of FunctionInterface (lambda)
+		Type lambdaInterface = bootstrapMethodType.getReturnType();
+		String lambdaInterfaceMethod = name + "()";
+		collector.markDependency(CALLS_DYNAMIC, lambdaInterface, lambdaInterfaceMethod);
 	}
 
 	@Override

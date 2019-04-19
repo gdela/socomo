@@ -6,6 +6,13 @@ import java.util.Set;
 
 import fixture.MyFields;
 import fixture.Targets;
+import fixture.Targets.Alfa;
+import fixture.Targets.Beta;
+import fixture.Targets.ColorEnum;
+import fixture.Targets.GenericAlfa;
+import fixture.Targets.ShapeAnnotation;
+import fixture.Targets._Base;
+import fixture.Targets._GenericBase;
 import org.junit.Test;
 
 import static pl.gdela.socomo.codemap.DepType.ANNOTATED;
@@ -31,9 +38,9 @@ public class FieldAnalysisTest extends BytecodeAnalyzerTestBase {
 	public void regular_field() {
 		analyzing("MyFields.class");
 		expectForSource(MyFields.class, "myRegularField")
-			.target(IS_OF_TYPE, Targets.Alfa.class)
-			.target(ANNOTATED, Targets.ShapeAnnotation.class)
-			.target(ANNOTATION_VALUE, Targets.ColorEnum.class, "GREEN")
+			.target(IS_OF_TYPE, Alfa.class)
+			.target(ANNOTATED, ShapeAnnotation.class)
+			.target(ANNOTATION_VALUE, ColorEnum.class, "GREEN")
 		;
 	}
 
@@ -42,7 +49,7 @@ public class FieldAnalysisTest extends BytecodeAnalyzerTestBase {
 		analyzing("MyFields.class");
 		expectForSource(MyFields.class, "myGenericField")
 			.target(IS_OF_TYPE, Set.class)
-			.target(TYPE_PARAM, Targets._Base.class)
+			.target(TYPE_PARAM, _Base.class)
 		;
 	}
 
@@ -50,9 +57,9 @@ public class FieldAnalysisTest extends BytecodeAnalyzerTestBase {
 	public void deeply_generic_field() {
 		analyzing("MyFields.class");
 		expectForSource(MyFields.class, "myDeeplyGenericField")
-			.target(IS_OF_TYPE, Targets._GenericBase.GenericInner.class)
-			.target(TYPE_PARAM, Targets.Alfa.class)
-			.target(TYPE_PARAM, Targets.Beta.class)
+			.target(IS_OF_TYPE, _GenericBase.GenericInner.class)
+			.target(TYPE_PARAM, Alfa.class)
+			.target(TYPE_PARAM, Beta.class)
 		;
 	}
 
@@ -90,10 +97,10 @@ public class FieldAnalysisTest extends BytecodeAnalyzerTestBase {
 
 			// deeply generic field init creating new objects
 			.target(READS_WRITES, MyFields.class, "myDeeplyGenericField")
-			.target(CREATES, Targets.GenericAlfa.class)
-			.target(CALLS, Targets.GenericAlfa.class, "<init>()")
-			.target(CREATES, Targets._GenericBase.GenericInner.class)
-			.target(CALLS, Targets._GenericBase.GenericInner.class, "<init>()")
+			.target(CREATES, GenericAlfa.class)
+			.target(CALLS, GenericAlfa.class, "<init>()")
+			.target(CREATES, _GenericBase.GenericInner.class)
+			.target(CALLS, _GenericBase.GenericInner.class, "<init>()")
 
 			// primitive field init
 			.target(READS_WRITES, MyFields.class, "myPrimitiveField")

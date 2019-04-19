@@ -6,7 +6,11 @@ import java.util.HashSet;
 
 import fixture.MyGenericClass;
 import fixture.MyRegularClass;
-import fixture.Targets;
+import fixture.Targets.Alfa;
+import fixture.Targets.Beta;
+import fixture.Targets.Delta;
+import fixture.Targets.Gamma;
+import fixture.Targets._Base;
 import org.junit.Test;
 
 import static pl.gdela.socomo.codemap.DepType.CALLS;
@@ -29,7 +33,7 @@ public class ClassAnalysisTest extends BytecodeAnalyzerTestBase {
 	public void regular_inner_class() {
 		analyzing("MyRegularClass$MyInnerClass.class");
 		expectForSource(MyRegularClass.MyInnerClass.class)
-			.target(EXTENDS, Targets._Base.class)
+			.target(EXTENDS, _Base.class)
 			.target(IMPLEMENTS, Serializable.class)
 		;
 	}
@@ -38,11 +42,11 @@ public class ClassAnalysisTest extends BytecodeAnalyzerTestBase {
 	public void generic_class() {
 		analyzing("MyGenericClass.class");
 		expectForSource(MyGenericClass.class)
-			.target(TYPE_PARAM, Targets.Alfa.class)
+			.target(TYPE_PARAM, Alfa.class)
 			.target(EXTENDS, HashSet.class)
-			.target(TYPE_PARAM, Targets.Beta.class)
+			.target(TYPE_PARAM, Beta.class)
 			.target(IMPLEMENTS, Comparable.class)
-			.target(TYPE_PARAM, Targets.Gamma.class)
+			.target(TYPE_PARAM, Gamma.class)
 		;
 	}
 
@@ -50,7 +54,7 @@ public class ClassAnalysisTest extends BytecodeAnalyzerTestBase {
 	public void generic_inner_class() {
 		analyzing("MyGenericClass$MyInnerClass.class");
 		expectForSource(MyGenericClass.MyInnerClass.class)
-			.target(TYPE_PARAM, Targets.Delta.class)
+			.target(TYPE_PARAM, Delta.class)
 			.target(EXTENDS, Object.class)
 			.target(IMPLEMENTS, Serializable.class)
 		;
@@ -60,7 +64,7 @@ public class ClassAnalysisTest extends BytecodeAnalyzerTestBase {
 	public void class_default_constructor() {
 		analyzing("MyRegularClass.class");
 		expectForSource(MyRegularClass.class, "<init>()")
-			.target(CALLS, Targets._Base.class, "<init>()")
+			.target(CALLS, _Base.class, "<init>()")
 		;
 	}
 
@@ -69,7 +73,7 @@ public class ClassAnalysisTest extends BytecodeAnalyzerTestBase {
 		analyzing("MyRegularClass$MyInnerClass.class");
 		expectForSource(MyRegularClass.MyInnerClass.class, "<init>()")
 			.target(HAS_PARAM, MyRegularClass.class)
-			.target(CALLS, Targets._Base.class, "<init>()")
+			.target(CALLS, _Base.class, "<init>()")
 		;
 	}
 

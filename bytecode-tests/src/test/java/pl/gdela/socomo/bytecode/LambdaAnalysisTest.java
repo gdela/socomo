@@ -1,16 +1,18 @@
 package pl.gdela.socomo.bytecode;
 
 import java.io.File;
-import java.util.function.Function;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import fixture.MyLambdas;
+import fixture.Targets.Alfa;
 import org.junit.Test;
 
 import static pl.gdela.socomo.codemap.DepType.CALLS;
+import static pl.gdela.socomo.codemap.DepType.CALLS_DYNAMIC;
 import static pl.gdela.socomo.codemap.DepType.HAS_PARAM;
+import static pl.gdela.socomo.codemap.DepType.READS_WRITES;
 import static pl.gdela.socomo.codemap.DepType.REFERENCES;
-import static pl.gdela.socomo.codemap.DepType.RETURNS;
-import static pl.gdela.socomo.codemap.DepType.TYPE_PARAM;
 
 public class LambdaAnalysisTest extends BytecodeAnalyzerTestBase {
 
@@ -23,24 +25,23 @@ public class LambdaAnalysisTest extends BytecodeAnalyzerTestBase {
 	}
 
 	@Test
-	public void lambda_factory() {
+	public void lambda_decl() {
 		analyzing("MyLambdas.class");
 		expectForSource(MyLambdas.class, "simpleLambda()")
-			.target(RETURNS, Function.class)
-			.target(TYPE_PARAM, Integer.class)
-			.target(TYPE_PARAM, Long.class)
+			.target(READS_WRITES, MyLambdas.class, "alfa")
+			.target(CALLS, Stream.class, "of()")
+			.target(CALLS, Stream.class, "forEach()")
+			.target(CALLS_DYNAMIC, Consumer.class, "accept()")
 		;
 	}
 
 	@Test
-	public void lambda_body() {
+	public void lambda_impl() {
 		analyzing("MyLambdas.class");
 		expectForSource(MyLambdas.class, "lambda$simpleLambda$0()")
-			.target(RETURNS, Long.class)
-			.target(HAS_PARAM, Integer.class)
-			.target(CALLS, Integer.class, "longValue()")
-			.target(CALLS, Long.class, "valueOf()")
-			.target(REFERENCES, Integer.class)
+			.target(HAS_PARAM, Alfa.class)
+			.target(REFERENCES, Alfa.class)
+			.target(CALLS, Alfa.class, "instanceMethod()")
 		;
 	}
 

@@ -1,12 +1,16 @@
 package fixture;
 
-import java.util.function.Function;
+import java.util.stream.Stream;
+
+import fixture.Targets.Alfa;
 
 @SuppressWarnings("all")
 public class MyLambdas {
 
-	Function<Integer, Long> simpleLambda() {
-		return x -> x.longValue();
+	private Alfa alfa;
+
+	void simpleLambda() {
+		Stream.of(alfa).forEach(x -> x.instanceMethod(null));
 	}
 
 }
