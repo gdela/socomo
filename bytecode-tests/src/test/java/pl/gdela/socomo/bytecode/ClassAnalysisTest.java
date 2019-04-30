@@ -8,11 +8,15 @@ import fixture.MyGenericClass;
 import fixture.MyRegularClass;
 import fixture.Targets.Alfa;
 import fixture.Targets.Beta;
+import fixture.Targets.ColorEnum;
 import fixture.Targets.Delta;
 import fixture.Targets.Gamma;
+import fixture.Targets.ShapeAnnotation;
 import fixture.Targets._Base;
 import org.junit.Test;
 
+import static pl.gdela.socomo.codemap.DepType.ANNOTATED;
+import static pl.gdela.socomo.codemap.DepType.ANNOTATION_VALUE;
 import static pl.gdela.socomo.codemap.DepType.CALLS;
 import static pl.gdela.socomo.codemap.DepType.EXTENDS;
 import static pl.gdela.socomo.codemap.DepType.HAS_PARAM;
@@ -27,6 +31,16 @@ public class ClassAnalysisTest extends BytecodeAnalyzerTestBase {
 
 	ClassAnalysisTest(File fixtureRoot) {
 		super(fixtureRoot);
+	}
+
+	@Test
+	public void regular_class() {
+		analyzing("MyRegularClass.class");
+		expectForSource(MyRegularClass.class)
+			.target(EXTENDS, _Base.class)
+			.target(IMPLEMENTS, Comparable.class)
+			.target(ANNOTATED, ShapeAnnotation.class)
+			.target(ANNOTATION_VALUE, ColorEnum.class, "BLUE");
 	}
 
 	@Test
