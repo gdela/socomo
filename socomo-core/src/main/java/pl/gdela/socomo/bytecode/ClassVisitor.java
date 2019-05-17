@@ -1,6 +1,7 @@
 package pl.gdela.socomo.bytecode;
 
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
@@ -26,7 +27,7 @@ class ClassVisitor extends org.objectweb.asm.ClassVisitor {
 	private final DependencyCollectorAdapter collector;
 
 	ClassVisitor(DependencyCollectorAdapter collector) {
-		super(Opcodes.ASM5);
+		super(Opcodes.ASM7);
 		this.collector = collector;
 	}
 
@@ -106,6 +107,22 @@ class ClassVisitor extends org.objectweb.asm.ClassVisitor {
 	public void visitInnerClass(String name, String outerName, String innerName, int access) {
 		// this method is called for each used inner class, so this somewhat superfluous
 		// to what we already record in other visitors: method visitors, field visitors, etc
+	}
+
+	@Override
+	public ModuleVisitor visitModule(String name, int access, String version) {
+		// not interesting
+		return null;
+	}
+
+	@Override
+	public void visitNestHost(String nestHost) {
+		// not interesting
+	}
+
+	@Override
+	public void visitNestMember(String nestMember) {
+		// not interesting
 	}
 
 	@Override

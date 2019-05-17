@@ -15,7 +15,7 @@ class FieldVisitor extends org.objectweb.asm.FieldVisitor {
 	private final DependencyCollectorAdapter collector;
 
 	FieldVisitor(DependencyCollectorAdapter collector) {
-		super(Opcodes.ASM5);
+		super(Opcodes.ASM7);
 		this.collector = collector;
 	}
 

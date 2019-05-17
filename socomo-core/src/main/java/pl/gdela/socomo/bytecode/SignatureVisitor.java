@@ -25,7 +25,7 @@ class SignatureVisitor extends org.objectweb.asm.signature.SignatureVisitor {
 	private Type visitedInnerClassType;
 
 	private SignatureVisitor(DependencyCollectorAdapter collector, DepType initialType, String indent) {
-		super(Opcodes.ASM5);
+		super(Opcodes.ASM7);
 		this.collector = collector;
 		this.currentType = initialType;
 		this.indent = indent;

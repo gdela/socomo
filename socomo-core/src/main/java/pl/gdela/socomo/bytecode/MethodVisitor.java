@@ -1,6 +1,7 @@
 package pl.gdela.socomo.bytecode;
 
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -58,6 +59,11 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	}
 
 	@Override
+	public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
+		// not interesting
+	}
+
+	@Override
 	public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
 		log.trace("annotated parameter {} with {}", parameter, desc);
 		// simplification: actually it is not the method that is annotated, its parameter is annotated
@@ -78,7 +84,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitCode() {
-		// noop
+		// not interesting
 	}
 
 	@Override
@@ -88,7 +94,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitLineNumber(int line, Label start) {
-		// noop
+		// not interesting
 	}
 
 	@Override
@@ -151,6 +157,10 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 		else if (cst instanceof Handle) {
 			// todo: read dependencies also from handles
 			log.warn("ignoring dependencies in handle {}: not yet supported", cst);
+		}
+		else if (cst instanceof ConstantDynamic) {
+			// todo: read dependencies also from constant dynamic
+			log.warn("ignoring dependencies in constant dynamic {}: not yet supported", cst);
 		}
 		else {
 			throw new IllegalArgumentException("unsupported constant type " + cst.getClass() + " (" + cst + ")");

@@ -103,15 +103,16 @@ public class BytecodeAnalyzer {
 	}
 
 	private static boolean isBytecode(ZipEntry entry) {
-		return entry.getName().endsWith(".class") && !entry.getName().equals("package-info.class");
+		return entry.getName().endsWith(".class")
+			&& !entry.getName().equals("package-info.class")
+			&& !entry.getName().equals("module-info.class");
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Collection<File> bytecodeFiles(File dir) {
-		IOFileFilter fileFilter = new AndFileFilter(
-				new SuffixFileFilter(".class"),
-				new NotFileFilter(new NameFileFilter("package-info.class")) // no dependencies in such file
-		);
+		AndFileFilter fileFilter = new AndFileFilter();
+		fileFilter.addFileFilter(new SuffixFileFilter(".class"));
+		fileFilter.addFileFilter(new NotFileFilter(new NameFileFilter("package-info.class")));
+		fileFilter.addFileFilter(new NotFileFilter(new NameFileFilter("module-info.class")));
 		IOFileFilter dirFilter = new NotFileFilter(new WildcardFileFilter("*-INF")); // META-INF, APP-INF, etc.
 		return listFiles(dir, fileFilter, dirFilter);
 	}
