@@ -48,7 +48,7 @@ const diagramStyle = cytoscape.stylesheet()
 
 	.selector('edge')
 	.css({
-		'width': 'mapData(strength, 0, 1, 0.33, 1.45)',
+		'width': 'mapData(strength, 1, 9, 0.33, 1.45)',
 		'line-color': '#dce6d7',
 		'line-style': 'solid',
 		'target-arrow-shape': 'triangle-backcurve',

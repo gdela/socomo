@@ -41,6 +41,18 @@ public class LevelTest {
 	}
 
 	@Test
+	public void sum_component_size() {
+		Level level = new Level("dummy");
+		assertThat(level.sumComponentSize()).isEqualTo(0);
+		level.component("a").incrementSizeBy(3);
+		assertThat(level.sumComponentSize()).isEqualTo(3);
+		level.component("b").incrementSizeBy(2);
+		level.component("b").incrementSizeBy(2);
+		level.component("c").incrementSizeBy(3);
+		assertThat(level.sumComponentSize()).isEqualTo(10);
+	}
+
+	@Test
 	public void max_dependency_strength() {
 		Level level = new Level("dummy");
 		Component a = level.component("a");

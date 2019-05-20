@@ -65,9 +65,9 @@ public class SocomoSmokeTest {
 
 		// then
 		assertThat(contentOf(output)).as("format of a component")
-				.containsPattern("'bytecode'\\s*:\\{ size: \\d.\\d \\},");
+				.containsPattern("'bytecode'\\s*:\\{ share: \\s?\\d+ \\},");
 
 		assertThat(contentOf(output)).as("format of a dependency")
-				.containsPattern("'bytecode -> codemap'\\s*:\\{ strength: \\d\\.\\d \\},");
+				.containsPattern("'bytecode -> codemap'\\s*:\\{ strength: \\d \\},");
 	}
 }

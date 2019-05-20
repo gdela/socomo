@@ -8,6 +8,7 @@ import pl.gdela.socomo.composition.ComponentDep;
 import pl.gdela.socomo.composition.Level;
 import pl.gdela.socomo.composition.Module;
 
+import static java.lang.Math.round;
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
 import static org.apache.commons.lang3.StringUtils.repeat;
@@ -113,23 +114,21 @@ class VisualizerHtml {
 	}
 
 	private void printComponents(Level level) {
-		float maxSize = level.maxComponentSize();
 		out("components: {");
 		indent(+2);
 		for (Component component : level.components) {
-			out("%-36s :{ size: %.1f },", ecmaString(component.name), component.size/maxSize);
+			out("%-36s :{ share: %2d },", ecmaString(component.name), shareOf(component, level));
 		}
 		indent(-2);
 		out("},");
 	}
 
 	private void printDependencies(Level level) {
-		float maxStrength = level.maxDependencyStrength();
 		out("dependencies: {");
 		indent(+2);
 		for (ComponentDep dep : level.dependencies) {
 			String depName = dep.from.name + " -> " + dep.to.name;
-			out("%-36s :{ strength: %.1f },", ecmaString(depName), dep.strength/maxStrength);
+			out("%-36s :{ strength: %1d },", ecmaString(depName), strengthOf(dep, level));
 		}
 		indent(-2);
 		out("},");
@@ -150,5 +149,42 @@ class VisualizerHtml {
 
 	private static String escapeHtml(String contents) {
 		return escapeHtml4(contents);
+	}
+
+	/**
+	 * Share of this component in the total size of the level, expressed as percentages. Depending
+	 * on the number of components, the percentages are rounded to nearest multiply of 1, 5 or 10,
+	 * to avoid changing the html output too often due to even minor changes. Almost zero share
+	 * is expressed as 1%, to avoid misleading that component has no code at all.
+	 */
+	private static int shareOf(Component component, Level level) {
+		float sumSize = level.sumComponentSize();
+		float sharePercentage = component.size / sumSize * 100;
+		int grain = 1;
+		int numOfComponents = level.components.size();
+		if (numOfComponents <= 20) grain = 5;
+		if (numOfComponents <= 10) grain = 10;
+		return roundToGrain(sharePercentage, grain);
+	}
+
+	/**
+	 * Strength of this dependency relative to other dependencies in the level. Expressed as a value
+	 * between 1 and 9, where 9 means the strongest dependency in this level. This range was chosen
+	 * to avoid misleading 0-strength in the html output, and fit the value in one character only.
+	 */
+	private static int strengthOf(ComponentDep dependency, Level level) {
+		float maxStrength = level.maxDependencyStrength();
+		float strengthFraction = dependency.strength / maxStrength;
+		return mapToRange(strengthFraction, 1, 9);
+	}
+
+	private static int roundToGrain(float value, int grain) {
+		return round(value / grain) * grain;
+	}
+
+	@SuppressWarnings("SameParameterValue")
+	private static int mapToRange(float fraction, int lowerBound, int upperBound) {
+		int width = upperBound - lowerBound;
+		return round(fraction * width + lowerBound);
 	}
 }

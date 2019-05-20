@@ -52,6 +52,14 @@ public class Level {
 		return maxSize;
 	}
 
+	public int sumComponentSize() {
+		int sumSize = 0;
+		for (Component component : components) {
+			sumSize += component.size;
+		}
+		return sumSize;
+	}
+
 	public int maxDependencyStrength() {
 		int maxStrength = 0;
 		for (ComponentDep dependency : dependencies) {
