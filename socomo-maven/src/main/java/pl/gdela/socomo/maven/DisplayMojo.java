@@ -7,7 +7,7 @@ import org.apache.maven.plugins.annotations.Mojo;
  * Maven plugin to execute Socomo analysis and display results in the browser.
  */
 @Mojo(name = "display")
-class DisplayMojo extends SocomoMojo {
+public class DisplayMojo extends SocomoMojo {
 
 	private static int numberOfDisplays;
 
