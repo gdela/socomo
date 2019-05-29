@@ -118,6 +118,19 @@ Download the [latest release] and do this to get help how to use it:
 java -jar socomo-standalone-*.jar --help
 ```
 
+## Alternatives
+
+Socomo is designed for simplicity and ease of use. If you would like to dig deeper into your code
+structure or enforce some rules about dependencies, consider alternatives listed below.
+
+[Stan4J](http://stan4j.com/) - composition diagrams, dependency exploration, code metrics. Commercial.
+
+[Structure101](https://structure101.com/) - ...
+
+[Lattix](https://lattix.com/) - ...
+
+[JDepend](https://github.com/clarkware/jdepend) - code metrics, detecting cyclic dependencies, enforcing simple
+architecture rules, dependency diagrams in graphviz format. Free, but outdated and unmaintained.
 
 ## Contributing
 
