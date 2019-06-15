@@ -118,19 +118,6 @@ Download the [latest release] and do this to get help how to use it:
 java -jar socomo-standalone-*.jar --help
 ```
 
-## Alternatives
-
-Socomo is designed for simplicity and ease of use. If you would like to dig deeper into your code
-structure or enforce some rules about dependencies, consider alternatives listed below.
-
-[Stan4J](http://stan4j.com/) - composition diagrams, dependency exploration, code metrics. Commercial.
-
-[Structure101](https://structure101.com/) - ...
-
-[Lattix](https://lattix.com/) - ...
-
-[JDepend](https://github.com/clarkware/jdepend) - code metrics, detecting cyclic dependencies, enforcing simple
-architecture rules, dependency diagrams in graphviz format. Free, but outdated and unmaintained.
 
 ## Contributing
 
@@ -147,6 +134,32 @@ To develop Socomo you need [Maven] and [Node/Npm] installed on your machine. The
 4. Run `npm --prefix socomo-view run serve` to start serving `*.js` and `*.css` asset files.
 5. Open the generated `socomo.html` file in the browser. Assets can be developed in-place, the browser
    will automatically reload them.
+
+
+## Alternatives
+
+Socomo is designed for simplicity and ease of use. If you would like to dig deeper into your code
+structure or enforce some rules about dependencies, consider alternatives listed below.
+
+[Stan4J](http://stan4j.com/) - simplest one to use, allows you to dig deeper into your code structure
+and analyze dependencies in detail.
+
+[Structure101](https://structure101.com/) - comprehensive toolset to explore structure of your code,
+analyze dependencies between code elements, define desired architecture of the code, integrate with
+build systems to detect violations and track structure changes.
+
+[Lattix](https://lattix.com/) - similar to the above, but focused on visualization using dependency
+structure matrix instead of graph diagrams.
+
+Most of the above have plugins for SonarQube, a widely used "Continous Inspection" system. They can
+also be used from within IntelliJ/Eclipse, though having a standalone GUI for visualizing software
+structure feels more ergonomic. 
+
+Tools that used to be useful once, but now are outdated and no longer maintained:
+[JDepend](https://github.com/clarkware/jdepend),
+[Classycle](http://classycle.sourceforge.net/),
+[Macker](https://innig.net/macker/),
+[Architexa](https://www.architexa.com/).
 
 
 <!-- Common Links -->
