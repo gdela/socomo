@@ -148,12 +148,12 @@ analyze dependencies between code elements, define desired architecture of the c
 build systems to detect violations and track structure changes.  
 [Lattix](https://lattix.com/solutions/) - similar to the above, but focused on visualization using dependency
 structure matrix instead of graph diagrams.  
-[JArchitect](https://www.jarchitect.com/dependenciesview) - another toolset, with dependency structure
+[JArchitect](https://www.jarchitect.com/dependenciesview) - toolset with dependency structure
 matrix visualisation, interactive dependency graph, and code base querying.  
 [Sonargraph](https://www.hello2morrow.com/products/sonargraph/explorer) - also a big toolset with
 a free Sonargraph Explorer to visualize and explore dependencies in the code.  
-[Softagram](https://softagram.com/products/) - a little bit different tool, that adds report
-of changes impact on the software structure as a comment to pull request.
+[Softagram](https://softagram.com/products/) - a little bit different tool, adds report
+of changes to the software structure as a comment to pull request.
 
 Most of the above have plugins for SonarQube, a widely used "Continous Inspection" system. They can
 also be used from within IntelliJ/Eclipse, though having a standalone GUI for visualizing software
