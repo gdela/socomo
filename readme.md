@@ -142,24 +142,42 @@ Socomo is designed for simplicity and ease of use. If you would like to dig deep
 structure or enforce some rules about dependencies, consider alternatives listed below.
 
 [Stan4J](http://stan4j.com/) - simplest one to use, allows you to dig deeper into your code structure
-and analyze dependencies in detail.
-
+and analyze dependencies in detail.  
 [Structure101](https://structure101.com/) - comprehensive toolset to explore structure of your code,
 analyze dependencies between code elements, define desired architecture of the code, integrate with
-build systems to detect violations and track structure changes.
-
-[Lattix](https://lattix.com/) - similar to the above, but focused on visualization using dependency
-structure matrix instead of graph diagrams.
+build systems to detect violations and track structure changes.  
+[Lattix](https://lattix.com/solutions/) - similar to the above, but focused on visualization using dependency
+structure matrix instead of graph diagrams.  
+[JArchitect](https://www.jarchitect.com/dependenciesview) - another toolset, with dependency structure
+matrix visualisation, interactive dependency graph, and code base querying.  
+[Sonargraph](https://www.hello2morrow.com/products/sonargraph/explorer) - also a big toolset with
+a free Sonargraph Explorer to visualize and explore dependencies in the code.  
+[Softagram](https://softagram.com/products/) - a little bit different tool, that adds report
+of changes impact on the software structure as a comment to pull request.
 
 Most of the above have plugins for SonarQube, a widely used "Continous Inspection" system. They can
 also be used from within IntelliJ/Eclipse, though having a standalone GUI for visualizing software
-structure feels more ergonomic. 
+structure feels more ergonomic.
+
+There is also a different category of tools, without visualizations and focused just
+on enforcing dependency rules written upfront.
+
+[ArchUnit](https://www.archunit.org/) - rules written as unit tests, in java code using fluent API.  
+[jQAssistant](https://jqassistant.org/) - rules written using Cypher Neo4j graph query language,
+checked by maven plugin.  
+[Deptective](https://github.com/moditect/deptective) - rules written in JSON, checked during
+compilation with `javac`.  
+[Code-Assert](https://github.com/nidi3/code-assert#user-content-dependency) - bases on JDepend,
+rules are written as unit tests.  
+[Highwheel](https://github.com/hcoles/highwheel), [Jadecy](https://github.com/jeffhain/jadecy) -
+two tools to detects package cycles, no custom rules though.
 
 Tools that used to be useful once, but now are outdated and no longer maintained:
 [JDepend](https://github.com/clarkware/jdepend),
 [Classycle](http://classycle.sourceforge.net/),
 [Macker](https://innig.net/macker/),
-[Architexa](https://www.architexa.com/).
+[Architexa](https://www.architexa.com/),
+[Degraph](https://github.com/schauder/degraph).
 
 
 <!-- Common Links -->

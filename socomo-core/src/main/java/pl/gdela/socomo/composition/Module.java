@@ -1,7 +1,7 @@
 package pl.gdela.socomo.composition;
 
 /**
- * A module understood as a set of java source codes. Think of it as maven module of your code.
+ * A module understood as a lump of java source codes build together. For example a maven module with your code.
  */
 public class Module {
 
