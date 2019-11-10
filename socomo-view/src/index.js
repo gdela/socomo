@@ -55,7 +55,7 @@ window.addEventListener('DOMContentLoaded', () => {
 			// keep in sync with versions in package.json and externals declaration in webpack.config.js
 			loadScript('https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.js'),
 			loadScript('https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.js'),
-			loadScript('https://cdn.jsdelivr.net/gh/gdela/cytoscape.js-klay@v3.1.2-patch1/cytoscape-klay.js'),
+			loadScript('https://cdn.jsdelivr.net/npm/cytoscape-klay@v3.1.3/cytoscape-klay.js'),
 			loadStyle(baseUrl + '/bundle.css'),
 			loadScript(baseUrl + '/bundle.js')
 		]);
