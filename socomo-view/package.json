@@ -23,7 +23,7 @@
     "eslint": "^5.15.3",
     "eslint-loader": "^2.1.2",
     "mini-css-extract-plugin": "^0.5.0",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.13.1",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "stylelint": "^9.10.1",
