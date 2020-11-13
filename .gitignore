@@ -5,6 +5,7 @@
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/**/contentModel.xml
+.idea/**/jarRepositories.xml
 
 # IntelliJ: Sensitive or high-churn files
 .idea/**/dataSources/
