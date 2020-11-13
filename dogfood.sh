@@ -3,7 +3,7 @@
 set -o errexit -o pipefail -o noclobber -o nounset
 
 # read the version of socomo that is being developed here
-SOCOMO_VERSION=`grep -o '<version>.*</version>' -m 1 pom.xml | sed 's/<[^>]*>//g'`
+SOCOMO_VERSION=$(grep -o '<version>.*</version>' -m 1 pom.xml | sed 's/<[^>]*>//g')
 
 echo '~~~ Installing Socomo to local maven repository ~~~'
 ./mvnw install -Dmaven.test.redirectTestOutputToFile=true | grep -v '^\[ERROR\]\s*$'
