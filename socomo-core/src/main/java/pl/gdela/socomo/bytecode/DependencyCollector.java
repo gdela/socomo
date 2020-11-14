@@ -31,7 +31,7 @@ public interface DependencyCollector {
 
 	/**
 	 * Signals end of the source member.
-	 * @param size of the member, roughly the number of bytecode instruction that this member consists of
+	 * @param size size of the member, roughly the number of bytecode instruction that this member consists of
 	 */
 	void exitMember(int size);
 

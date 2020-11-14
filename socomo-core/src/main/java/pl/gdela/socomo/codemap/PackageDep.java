@@ -33,8 +33,8 @@ public class PackageDep implements Comparable<PackageDep> {
 	private final Map<DepKey, MemberDep> memberDeps = new TreeMap<>();
 
 	PackageDep(CodePackage from, CodePackage to) {
-		this.from = from;
-		this.to = to;
+		this.from = notNull(from);
+		this.to = notNull(to);
 	}
 
 	public Collection<MemberDep> memberDeps() {

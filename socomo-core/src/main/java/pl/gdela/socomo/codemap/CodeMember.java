@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import static org.apache.commons.lang3.Validate.notNull;
 import static pl.gdela.socomo.codemap.Origin.EXTERNAL;
 
 /**
@@ -40,8 +41,8 @@ public class CodeMember implements Comparable<CodeMember> {
 	int size;
 
 	CodeMember(CodePackage packet, String className, String memberName) {
-		this.packet = packet;
-		this.className = className;
+		this.packet = notNull(packet);
+		this.className = notNull(className);
 		this.memberName = memberName;
 	}
 

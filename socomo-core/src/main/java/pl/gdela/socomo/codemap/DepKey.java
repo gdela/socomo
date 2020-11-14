@@ -4,17 +4,19 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import static org.apache.commons.lang3.Validate.notNull;
+
 /**
  * Key for dependency between two objects, to be used as key in dependency collections.
  */
 class DepKey implements Comparable<DepKey> {
 
-	private final Comparable from;
-	private final Comparable to;
+	private final Comparable<?> from;
+	private final Comparable<?> to;
 
-	private DepKey(Comparable from, Comparable to) {
-		this.from = from;
-		this.to = to;
+	private DepKey(Comparable<?> from, Comparable<?> to) {
+		this.from = notNull(from);
+		this.to = notNull(to);
 	}
 
 	static DepKey depKey(CodePackage from, CodePackage to) {

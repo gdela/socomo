@@ -32,7 +32,7 @@ public class CodePackage implements Comparable<CodePackage> {
 	private final Map<String, CodeMember> members = new TreeMap<>();
 
 	CodePackage(String fqn) {
-		this.fqn = fqn;
+		this.fqn = notNull(fqn);
 	}
 
 	public Collection<CodeMember> members() {

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import static org.apache.commons.lang3.Validate.isTrue;
 import static org.apache.commons.lang3.Validate.notNull;
 import static pl.gdela.socomo.codemap.DepKey.depKey;
 
@@ -54,6 +55,8 @@ public class Codemap {
 	PackageDep packageDep(CodePackage from, CodePackage to) {
 		notNull(from, "from cannot be null");
 		notNull(to, "to cannot be null");
+		isTrue(packages.containsKey(from.fqn), "'from' package %s must belong to this codemap", from);
+		isTrue(packages.containsKey(to.fqn), "'to' package %s must belong to this codemap", to);
 		DepKey key = depKey(from, to);
 		PackageDep packageDep = packageDeps.get(key);
 		if (packageDep == null) {
@@ -64,21 +67,24 @@ public class Codemap {
 	}
 
 	/**
-	 * Returns a new codemap that contains only code elements defined in given origin.
+	 * Returns a new codemap that contains only code elements selected by given selector.
 	 */
-	public Codemap select(Origin origin) {
+	public Codemap select(Selector selector) {
 		Codemap selected = new Codemap();
 		for (CodePackage packet : this.packages()) {
 			for (CodeMember member : packet.members()) {
-				if (member.origin == origin) {
-					selected.packet(packet.fqn).member(member.className, member.memberName).size = member.size;
+				if (selector.shouldSelect(member)) {
+					CodeMember selectedMember = selected.packet(packet.fqn).member(member.className, member.memberName);
+					selectedMember.size = member.size;
+					selectedMember.origin = member.origin;
 				}
 			}
 		}
 		for (PackageDep packageDep : this.packageDeps()) {
 			for (MemberDep memberDep : packageDep.memberDeps()) {
-				if (memberDep.from.origin == origin && memberDep.to.origin == origin) {
-					selected.packageDep(packageDep.from, packageDep.to).memberDep(memberDep.from, memberDep.to);
+				if (selector.shouldSelect(memberDep)) {
+					MemberDep selectedMemberDep = selected.packageDep(packageDep.from, packageDep.to).memberDep(memberDep.from, memberDep.to);
+					selectedMemberDep.type = memberDep.type;
 				}
 			}
 		}

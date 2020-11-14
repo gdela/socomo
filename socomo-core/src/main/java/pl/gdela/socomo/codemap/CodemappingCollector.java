@@ -39,7 +39,8 @@ public class CodemappingCollector implements DependencyCollector {
 		CodePackage packet = codemap.packet(packageFqn);
 		CodeMember member = packet.member(className, classMemberName);
 		PackageDep packageDep = codemap.packageDep(currentPackage, packet);
-		packageDep.memberDep(currentMember, member);
+		MemberDep memberDep = packageDep.memberDep(currentMember, member);
+		memberDep.type = type;
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.Validate.isTrue;
 import static org.apache.commons.lang3.Validate.validState;
 import static pl.gdela.socomo.codemap.Origin.MAIN;
+import static pl.gdela.socomo.codemap.Selector.nonSelfDepsAndFrom;
 
 /**
  * Facade for easy invocation of whole socomo flow, from bytecode analysis up to building dependency visualiser.
@@ -51,7 +52,7 @@ public class SocomoFacade {
 		} else {
 			throw new IllegalArgumentException(input + " is neither jar not dir");
 		}
-		codemap = collector.getCodemap().select(MAIN);
+		codemap = collector.getCodemap().select(nonSelfDepsAndFrom(MAIN));
 		log.trace("codemap:\n{}", codemap.formatted());
 	}
 
