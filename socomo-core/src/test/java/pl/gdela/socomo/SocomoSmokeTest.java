@@ -28,7 +28,6 @@ public class SocomoSmokeTest {
 		socomo.visualizeInto(outputHtml, outputData);
 
 		// then
-		assertThat(outputHtml).exists();
 		assertThat(contentOf(outputHtml))
 				.contains("'dummy-module'") // module name
 				.contains("'pl.gdela.socomo'") // guessed level
@@ -83,7 +82,7 @@ public class SocomoSmokeTest {
 		socomo.visualizeInto(outputHtml, outputData);
 
 		// then
-		assertThat(outputData).exists();
+		assertThat(contentOf(outputHtml)).contains("script src='" + outputData.getName() + "'");
 		String json = substringAfter(contentOf(outputData), "codemap = ");
 
 		assertThatJson(inPath(json, "$.packageDeps"))

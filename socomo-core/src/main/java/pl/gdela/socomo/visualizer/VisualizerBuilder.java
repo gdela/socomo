@@ -2,6 +2,7 @@ package pl.gdela.socomo.visualizer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import pl.gdela.socomo.composition.Module;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
+import static pl.gdela.socomo.visualizer.Asset.asyncScript;
 import static pl.gdela.socomo.visualizer.Asset.script;
 import static pl.gdela.socomo.visualizer.Asset.scriptContent;
 import static pl.gdela.socomo.visualizer.Asset.style;
@@ -36,16 +38,18 @@ public class VisualizerBuilder {
 		this.level = level;
 	}
 
-	public void buildInto(File file) {
-		log.info("visualizing into {}", file);
+	public void buildInto(File htmlFile, File dataFile) {
+		log.info("visualizing into {}", htmlFile);
 		try {
 			VisualizerHtml template = new VisualizerHtml(module);
 			template.addLevel(level);
 			for (Asset asset : assets()) {
 				template.addAsset(asset);
 			}
+			String dataFileUrl = urlFromTo(htmlFile, dataFile);
+			template.addAsset(asyncScript(dataFileUrl));
 			String visualizer = template.render();
-			save(visualizer, file);
+			save(visualizer, htmlFile);
 		} catch (IOException e) {
 			throw new RuntimeException("cannot build visualizer", e);
 		}
@@ -97,4 +101,12 @@ public class VisualizerBuilder {
 		return assets;
 	}
 
+	/**
+	 * Returns relative path from parent directory of one file to another file.
+	 */
+	private static String urlFromTo(File fromFile, File toFile) {
+		Path parentDirectory = fromFile.toPath().getParent().toAbsolutePath();
+		Path target = toFile.toPath().toAbsolutePath();
+		return parentDirectory.relativize(target).toString().replace('\\', '/');
+	}
 }

@@ -98,7 +98,7 @@ public class SocomoFacade {
 		VisualizerBuilder builder = new VisualizerBuilder();
 		builder.setModule(module);
 		builder.setLevel(level);
-		builder.buildInto(output);
+		builder.buildInto(output, dataFile);
 		saveDetails(dataFile);
 	}
 

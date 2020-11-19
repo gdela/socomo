@@ -72,6 +72,9 @@ class VisualizerHtml {
 				case SCRIPT:
 					out("<script src='%s'></script>", asset.url);
 					break;
+				case ASYNC_SCRIPT:
+					out("<script src='%s' async></script>", asset.url);
+					break;
 				case STYLE_CONTENT:
 					out("<style>");
 					for (String line : split(asset.content, '\n')) out(line);

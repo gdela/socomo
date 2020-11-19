@@ -25,6 +25,10 @@ class Asset {
 		return new Asset(SCRIPT).withUrl(url);
 	}
 
+	static Asset asyncScript(String url) {
+		return new Asset(Type.ASYNC_SCRIPT).withUrl(url);
+	}
+
 	static Asset styleContent(String content) {
 		return new Asset(STYLE_CONTENT).withContent(content);
 	}
@@ -43,5 +47,5 @@ class Asset {
 		return this;
 	}
 
-	enum Type { STYLE, SCRIPT, STYLE_CONTENT, SCRIPT_CONTENT }
+	enum Type { STYLE, SCRIPT, ASYNC_SCRIPT, STYLE_CONTENT, SCRIPT_CONTENT }
 }
