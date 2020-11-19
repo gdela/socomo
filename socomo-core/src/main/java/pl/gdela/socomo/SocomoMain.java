@@ -41,10 +41,26 @@ class SocomoMain implements Callable<Void> {
 	@Option(
 			names = { "-o", "--output" },
 			paramLabel = "DIR",
-			description = "Directory to which socomo.html will be written.",
+			description = "Directory to which socomo.html and socomo.data will be written.",
 			defaultValue = "."
 	)
-	private File output;
+	private File outputDir;
+
+	@Option(
+		names = { "--output-for-html" },
+		paramLabel = "DIR",
+		description = "Directory to which socomo.html will be written. Overwrites common '-o' option.",
+		hidden = true
+	)
+	private File outputHtmlDir;
+
+	@Option(
+		names = { "--output-for-data" },
+		paramLabel = "DIR",
+		description = "Directory to which socomo.data will be written. Overwrites common '-o' option.",
+		hidden = true
+	)
+	private File outputDataDir;
 
 	@Option(
 			names = { "-l", "--level" },
@@ -65,20 +81,29 @@ class SocomoMain implements Callable<Void> {
 
 	@Override
 	public Void call() throws IOException {
-		if (!output.isDirectory() || !output.canWrite()) {
-			err.println("Invalid output directory: " + output);
-			err.println("Please specify an existing, writable directory for output.");
+		if (outputHtmlDir == null) outputHtmlDir = outputDir;
+		if (!outputHtmlDir.isDirectory() || !outputHtmlDir.canWrite()) {
+			err.println("Invalid output directory: " + outputHtmlDir);
+			err.println("Please specify an existing, writable directory for html output.");
 			CommandLine.usage(this, err);
-			exit(-1);
+			exit(1);
+		}
+		if (outputDataDir == null) outputDataDir = outputDir;
+		if (!outputDataDir.isDirectory() || !outputDataDir.canWrite()) {
+			err.println("Invalid output directory: " + outputDataDir);
+			err.println("Please specify an existing, writable directory for data output.");
+			CommandLine.usage(this, err);
+			exit(1);
 		}
 		if (!input.canRead()) {
 			err.println("Invalid input file/directory: " + input);
 			err.println("Please specify an existing, readable file or directory for input.");
 			CommandLine.usage(this, err);
-			exit(-1);
+			exit(1);
 		}
 
-		File outputFile = new File(output.getCanonicalFile(), "socomo.html");
+		File outputHtmlFile = new File(outputHtmlDir.getCanonicalFile(), "socomo.html");
+		File outputDataFile = new File(outputDataDir.getCanonicalFile(), "socomo.data");
 		SocomoFacade socomo = new SocomoFacade(input.toString().replace('\\', '/'));
 		socomo.analyzeBytecode(input);
 		if (level != null) {
@@ -86,7 +111,7 @@ class SocomoMain implements Callable<Void> {
 		} else {
 			socomo.guessLevel();
 		}
-		socomo.visualizeInto(outputFile);
+		socomo.visualizeInto(outputHtmlFile, outputDataFile);
 		if (display) {
 			socomo.display();
 		}

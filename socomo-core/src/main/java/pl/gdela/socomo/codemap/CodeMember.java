@@ -1,9 +1,12 @@
 package pl.gdela.socomo.codemap;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static org.apache.commons.lang3.Validate.notNull;
 import static pl.gdela.socomo.codemap.Origin.EXTERNAL;
 
@@ -13,6 +16,7 @@ import static pl.gdela.socomo.codemap.Origin.EXTERNAL;
  *
  * @see Codemap
  */
+@JsonAutoDetect(fieldVisibility = NONE, getterVisibility = NONE)
 public class CodeMember implements Comparable<CodeMember> {
 
 	/**
@@ -23,11 +27,13 @@ public class CodeMember implements Comparable<CodeMember> {
 	/**
 	 * Simple name of the class to which member belongs.
 	 */
+	@JsonProperty
 	public final String className;
 
 	/**
 	 * Simple name of the member. May be {@code null}, and this means that this member represents the whole class.
 	 */
+	@JsonProperty
 	public final String memberName;
 
 	/**

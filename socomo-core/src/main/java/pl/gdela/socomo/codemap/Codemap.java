@@ -6,6 +6,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static org.apache.commons.lang3.Validate.isTrue;
 import static org.apache.commons.lang3.Validate.notNull;
 import static pl.gdela.socomo.codemap.DepKey.depKey;
@@ -21,6 +26,7 @@ import static pl.gdela.socomo.codemap.DepKey.depKey;
  * package. Although later, when we will transform codemap to level composition data, we will
  * do exactly that, i.e. flatten subpackages from the same parent into one component.
  */
+@JsonAutoDetect(fieldVisibility = NONE, getterVisibility = NONE)
 public class Codemap {
 
 	private final Map<String, CodePackage> packages = new TreeMap<>();
@@ -31,6 +37,7 @@ public class Codemap {
 		return packages.values();
 	}
 
+	@JsonProperty
 	public Collection<PackageDep> packageDeps() {
 		return packageDeps.values();
 	}

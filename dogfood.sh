@@ -11,7 +11,8 @@ echo ''
 
 echo '~~~ Using Socomo standalone on the Socomo project itself ~~~'
 java -jar socomo-core/target/socomo-standalone-${SOCOMO_VERSION}.jar \
-     -o socomo-core socomo-core/target/socomo-core-${SOCOMO_VERSION}.jar
+	--output-for-html socomo-core --output-for-data socomo-core/target \
+	socomo-core/target/socomo-core-${SOCOMO_VERSION}.jar
 echo ''
 
 echo '~~~ Using Socomo maven plugin on the Socomo project itself ~~~'

@@ -4,8 +4,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static org.apache.commons.lang3.Validate.isTrue;
 import static org.apache.commons.lang3.Validate.notNull;
 import static pl.gdela.socomo.codemap.DepKey.depKey;
@@ -13,16 +16,19 @@ import static pl.gdela.socomo.codemap.DepKey.depKey;
 /**
  * Directed dependency between two {@link CodePackage}s.
  */
+@JsonAutoDetect(fieldVisibility = NONE, getterVisibility = NONE)
 public class PackageDep implements Comparable<PackageDep> {
 
 	/**
 	 * The package that uses {@code to} package.
 	 */
+	@JsonProperty
 	public final CodePackage from;
 
 	/**
 	 * The package that is used by {@code from} package.
 	 */
+	@JsonProperty
 	public final CodePackage to;
 
 	/**
@@ -37,6 +43,7 @@ public class PackageDep implements Comparable<PackageDep> {
 		this.to = notNull(to);
 	}
 
+	@JsonProperty
 	public Collection<MemberDep> memberDeps() {
 		return memberDeps.values();
 	}

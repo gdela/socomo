@@ -7,10 +7,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.Validate.isTrue;
 import static org.apache.commons.lang3.Validate.notNull;
@@ -22,11 +25,13 @@ import static org.apache.commons.lang3.Validate.notNull;
  *
  * @see Codemap
  */
+@JsonAutoDetect(fieldVisibility = NONE, getterVisibility = NONE)
 public class CodePackage implements Comparable<CodePackage> {
 
 	/**
 	 * Fully qualified name of the package, eg. {@code java.util.concurrent}.
 	 */
+	@JsonProperty
 	public final String fqn;
 
 	private final Map<String, CodeMember> members = new TreeMap<>();

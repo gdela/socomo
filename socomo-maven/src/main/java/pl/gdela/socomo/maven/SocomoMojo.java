@@ -59,7 +59,8 @@ abstract class SocomoMojo extends AbstractMojo {
 			return;
 		}
 
-		File outputFile = new File(mavenProject.getBasedir(), "socomo.html");
+		File outputHtmlFile = new File(mavenProject.getBasedir(), "socomo.html");
+		File outputDataFile = new File(mavenProject.getBuild().getDirectory(), "socomo.data");
 		try {
 			beforeExecute();
 			socomo = new SocomoFacade(mavenProject.getName());
@@ -69,7 +70,7 @@ abstract class SocomoMojo extends AbstractMojo {
 			} else {
 				socomo.guessLevel();
 			}
-			socomo.visualizeInto(outputFile);
+			socomo.visualizeInto(outputHtmlFile, outputDataFile);
 			afterExecute();
 		} catch (RuntimeException e) {
 			throw new MojoExecutionException(e.getMessage(), e);
