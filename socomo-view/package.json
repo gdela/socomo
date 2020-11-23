@@ -14,7 +14,7 @@
     "serve": "webpack-dev-server"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.7",
+    "@babel/core": "^7.12.8",
     "@babel/preset-env": "^7.12.7",
     "babel-loader": "^8.2.1",
     "browserlist": "^1.0.1",
