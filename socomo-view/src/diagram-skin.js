@@ -4,7 +4,7 @@
 
 import cytoscape from 'cytoscape';
 
-// http://js.cytoscape.org/#layouts
+// see http://js.cytoscape.org/#layouts
 const diagramLayout = {
 	name: 'klay', // todo: choose between dagre and klay, check also BRANDES_KOEPF node placement
 	fit: true,
@@ -40,6 +40,9 @@ const diagramStyle = cytoscape.stylesheet()
 		'padding': 0,
 		'color': '#000',
 		'background-color': '#ede9ed',
+		'border-width': '1px',
+		'border-color': '#ede9ed',
+		'border-style': 'solid',
 		'text-valign': 'center',
 		'text-halign': 'center',
 		'font-family': 'Lato, Verdana, Geneva, sans-serif',
@@ -95,6 +98,26 @@ const diagramStyle = cytoscape.stylesheet()
 		'target-arrow-color': '#cfcfcf',
 		'opacity': '0.15',
 		'z-index': 0
+	})
+
+	.selector('node.highlight-dependency')
+	.css({
+		'background-blacken': 0.15,
+		'border-color': '#927A92',
+		'border-style': 'dotted',
+	})
+
+	.selector('edge.highlight-dependency')
+	.css({
+		'line-color': '#668855',
+		'target-arrow-color': '#668855',
+		'line-style': 'dotted'
+	})
+
+	.selector('edge.violation.highlight-dependency')
+	.css({
+		'line-color': '#B80000',
+		'target-arrow-color': '#B80000'
 	});
 
 export { diagramLayout, diagramStyle };

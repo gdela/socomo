@@ -6,6 +6,7 @@
 
 import './main.scss';
 import drawDiagram from './diagram';
+import drawTable from './table';
 
 function socomo(composition) {
 
@@ -18,12 +19,31 @@ function socomo(composition) {
 	<div id="header-container">
 		<h1>${moduleName} &nbsp;&#x276d;&nbsp; <code>${levelName}</code></h1>
 	</div>
-	<div id="diagram-container">
+	<div id="content-container">
 		<div id="main-diagram"></div>
+		<div id="main-table"></div>
 	</div>`;
 
+	const mainDiagram = document.getElementById('main-diagram');
+	const mainTable = document.getElementById('main-table');
+
 	doLongTask(() => {
-		drawDiagram(document.getElementById('main-diagram'), level);
+		drawDiagram(mainDiagram, level, onDependencySelected);
+	});
+
+	function onDependencySelected(fromComponent, toComponent) {
+		console.info('selected dependency %s -> %s', fromComponent, toComponent);
+		drawTable(mainTable, fromComponent, toComponent);
+		mainTable.style.display = 'flex';
+	}
+
+	document.addEventListener('keyup', e => {
+		if (e.key === 'Escape' || e.key === 'Esc') {
+			mainTable.style.display = 'none';
+		}
+	});
+	mainTable.addEventListener('click', () => {
+		mainTable.style.display = 'none';
 	});
 }
 
