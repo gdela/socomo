@@ -53,11 +53,11 @@ function createTable(packageDeps, fromComponentName, toComponentName) {
 	for (const packageDep of packageDeps) {
 		for (const memberDep of packageDep.memberDeps) {
 			tbody.insertRow().innerHTML = `
-				<td>${packageDep.from.relativeName}.${memberDep.from.className}</td>
-				<td>${nn(memberDep.from.memberName)}</td>
+				<td>${fromPackageAndClassName(packageDep, memberDep)}</td>
+				<td>${fromMemberName(memberDep)}</td>
 				<td>&rightarrow;</td>
-				<td>${nn(memberDep.to.memberName)}</td>
-				<td>${packageDep.to.relativeName}.${memberDep.to.className}</td>
+				<td>${toMemberName(memberDep)}</td>
+				<td>${toPackageAndClassName(packageDep, memberDep)}</td>
 			`;
 		}
 	}
@@ -70,8 +70,22 @@ function createTable(packageDeps, fromComponentName, toComponentName) {
 	return tableWrapper;
 }
 
-function nn(value) {
-	return value !== null ? value : '';
+function fromPackageAndClassName(packageDep, memberDep) {
+	return [packageDep.from.relativeName, memberDep.from.className].filter(x => x).join('.');
 }
 
+function toPackageAndClassName(packageDep, memberDep) {
+	return [packageDep.to.relativeName, memberDep.to.className].filter(x => x).join('.');
+}
 
+function fromMemberName(memberDep) {
+	return memberDep.from.memberName !== null
+		? memberDep.from.memberName.replace('<', '&lt;').replace('>', '&gt;')
+		: '';
+}
+
+function toMemberName(memberDep) {
+	return memberDep.to.memberName !== null
+		? memberDep.to.memberName.replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+		: '<i>' + memberDep.type.toLowerCase().replaceAll('_', ' ') + '</i>';
+}
