@@ -8,7 +8,13 @@ import './main.scss';
 import drawDiagram from './diagram';
 import drawTable from './table';
 
-function socomo(composition) {
+function socomo() {
+
+	// window.composition comes from socomo.html and is ready before we are called
+	const composition = window.composition;
+	// window.codemap comes from socomo.data which is loaded asynchronously
+	const hasCodemap = () => window.codemap !== undefined;
+	const getCodemap = () => window.codemap;
 
 	const module = composition[0];
 	const moduleName = module.module;
@@ -32,9 +38,13 @@ function socomo(composition) {
 	});
 
 	function onDependencySelected(fromComponent, toComponent) {
-		console.info('selected dependency %s -> %s', fromComponent, toComponent);
-		drawTable(mainTable, fromComponent, toComponent);
-		mainTable.style.display = 'flex';
+		if (hasCodemap()) {
+			console.info('selected dependency %s -> %s', fromComponent, toComponent);
+			drawTable(mainTable, getCodemap(), fromComponent, toComponent);
+			mainTable.style.display = 'flex';
+		} else {
+			console.warn('socomo.data not yet loaded or completely missing');
+		}
 	}
 
 	document.addEventListener('keyup', e => {

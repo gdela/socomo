@@ -65,8 +65,7 @@ window.addEventListener('DOMContentLoaded', () => {
 		.then(() => {
 			console.debug('assets loaded');
 			// window.socomo comes from the bundle.js (main.js)
-			// window.composition comes from a socomo.html
-			window.socomo(window.composition);
+			window.socomo();
 		}).catch(error => {
 			document.body.className = 'error-state';
 			throw error;

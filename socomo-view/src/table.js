@@ -7,8 +7,8 @@ import './table.scss';
 
 export default drawTable;
 
-function drawTable(tableContainer, fromComponentName, toComponentName) {
-	const filteredDeps = filterAndRelativize(window.codemap.packageDeps, fromComponentName, toComponentName);
+function drawTable(tableContainer, codemap, fromComponentName, toComponentName) {
+	const filteredDeps = filterAndRelativize(codemap.packageDeps, fromComponentName, toComponentName);
 	const table = createTable(filteredDeps, fromComponentName, toComponentName);
 	tableContainer.innerHTML = '';
 	tableContainer.appendChild(table);
