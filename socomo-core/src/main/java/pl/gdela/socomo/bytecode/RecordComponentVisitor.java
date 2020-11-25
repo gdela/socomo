@@ -9,20 +9,20 @@ import org.slf4j.LoggerFactory;
 import static org.objectweb.asm.Type.getType;
 import static pl.gdela.socomo.codemap.DepType.ANNOTATED;
 
-class FieldVisitor extends org.objectweb.asm.FieldVisitor {
-	private static final Logger log = LoggerFactory.getLogger(FieldVisitor.class);
+class RecordComponentVisitor extends org.objectweb.asm.RecordComponentVisitor {
+	private static final Logger log = LoggerFactory.getLogger(RecordComponentVisitor.class);
 
 	private final DependencyCollectorAdapter collector;
 
-	FieldVisitor(DependencyCollectorAdapter collector) {
+	RecordComponentVisitor(DependencyCollectorAdapter collector) {
 		super(Opcodes.ASM9);
 		this.collector = collector;
 	}
 
 	@Override
 	public void visitEnd() {
-		// to exit member entered in ClassVisitor.visitField()
-		collector.exitMember(1);
+		// to exit member entered in ClassVisitor.visitRecordComponent()
+		collector.exitMember(0); // record component will be counted as field and as method
 	}
 
 	@Override
@@ -35,7 +35,7 @@ class FieldVisitor extends org.objectweb.asm.FieldVisitor {
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
 		log.trace("annotated type {} with {}", typePath, desc);
-		// simplification: actually it is not the field that is annotated, a type used in field signature is annotated
+		// simplification: actually it is not the record component that is annotated, a type used in record component signature is annotated
 		collector.markDependency(ANNOTATED, getType(desc));
 		return new AnnotationVisitor(collector);
 	}
@@ -44,4 +44,5 @@ class FieldVisitor extends org.objectweb.asm.FieldVisitor {
 	public void visitAttribute(Attribute attribute) {
 		log.warn("ignoring non-standard attribute {} of class {}", attribute.type, attribute.getClass());
 	}
+
 }

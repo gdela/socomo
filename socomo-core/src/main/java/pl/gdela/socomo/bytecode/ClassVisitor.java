@@ -27,7 +27,7 @@ class ClassVisitor extends org.objectweb.asm.ClassVisitor {
 	private final DependencyCollectorAdapter collector;
 
 	ClassVisitor(DependencyCollectorAdapter collector) {
-		super(Opcodes.ASM7);
+		super(Opcodes.ASM9);
 		this.collector = collector;
 	}
 
@@ -94,6 +94,18 @@ class ClassVisitor extends org.objectweb.asm.ClassVisitor {
 			collector.markDependency(THROWS, getObjectType(exception));
 		}
 		return new MethodVisitor(collector);
+	}
+
+	@Override
+	public RecordComponentVisitor visitRecordComponent(String name, String desc, String signature) {
+		log.trace("in record component {}", name);
+		collector.enterMember(name);
+		if (signature == null) {
+			collector.markDependency(IS_OF_TYPE, getType(desc));
+		} else {
+			new SignatureReader(signature).acceptType(new SignatureVisitor(collector, IS_OF_TYPE));
+		}
+		return new RecordComponentVisitor(collector);
 	}
 
 	@Override

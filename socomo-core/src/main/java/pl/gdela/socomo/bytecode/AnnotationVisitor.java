@@ -11,7 +11,7 @@ class AnnotationVisitor extends org.objectweb.asm.AnnotationVisitor {
 	private final DependencyCollectorAdapter collector;
 
 	AnnotationVisitor(DependencyCollectorAdapter collector) {
-		super(Opcodes.ASM7);
+		super(Opcodes.ASM9);
 		this.collector = collector;
 	}
 

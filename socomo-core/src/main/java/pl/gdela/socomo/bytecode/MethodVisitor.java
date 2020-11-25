@@ -33,7 +33,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	private int instructionCount = 1;
 
 	MethodVisitor(DependencyCollectorAdapter collector) {
-		super(Opcodes.ASM5);
+		super(Opcodes.ASM9);
 		this.collector = collector;
 	}
 
