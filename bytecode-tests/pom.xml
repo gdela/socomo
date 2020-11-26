@@ -62,7 +62,7 @@
 				<configuration>
 					<!-- the highest java version for which we have tests -->
 					<release>15</release>
-					<compilerArgs>--enable-preview</compilerArgs>
+					<compilerArgument>--enable-preview</compilerArgument>
 				</configuration>
 			</plugin>
 			<plugin>
