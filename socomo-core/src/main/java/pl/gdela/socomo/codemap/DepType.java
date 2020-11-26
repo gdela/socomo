@@ -3,6 +3,7 @@ package pl.gdela.socomo.codemap;
 public enum DepType {
 	REFERENCES,
 	EXTENDS,
+	PERMITS,
 	IMPLEMENTS,
 	IS_OF_TYPE,
 	HAS_PARAM,

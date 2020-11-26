@@ -25,5 +25,6 @@ public final class Java15TestSuite {
 	public static class T3 extends MethodAnalysisTest { public T3() { super(FIXTURE_ROOT); } }
 	public static class T4 extends LambdaAnalysisTest { public T4() { super(FIXTURE_ROOT); } }
 	public static class T5 extends RecordAnalysisTest { public T5() { super(FIXTURE_ROOT); } }
+	public static class T6 extends SealedAnalysisTest { public T6() { super(FIXTURE_ROOT); } }
 
 }

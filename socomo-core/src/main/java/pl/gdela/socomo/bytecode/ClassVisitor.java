@@ -18,6 +18,7 @@ import static pl.gdela.socomo.codemap.DepType.EXTENDS;
 import static pl.gdela.socomo.codemap.DepType.HAS_PARAM;
 import static pl.gdela.socomo.codemap.DepType.IMPLEMENTS;
 import static pl.gdela.socomo.codemap.DepType.IS_OF_TYPE;
+import static pl.gdela.socomo.codemap.DepType.PERMITS;
 import static pl.gdela.socomo.codemap.DepType.RETURNS;
 import static pl.gdela.socomo.codemap.DepType.THROWS;
 
@@ -48,6 +49,12 @@ class ClassVisitor extends org.objectweb.asm.ClassVisitor {
 	@Override
 	public void visitEnd() {
 		collector.exitClass();
+	}
+
+	@Override
+	public void visitPermittedSubclass(String permittedSubclass) {
+		log.trace("permits {}", permittedSubclass);
+		collector.markDependency(PERMITS, getObjectType(permittedSubclass));
 	}
 
 	@Override
