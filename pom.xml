@@ -6,7 +6,7 @@
     <groupId>pl.gdela</groupId>
     <artifactId>socomo-parent</artifactId>
     <packaging>pom</packaging>
-    <version>2.2-SNAPSHOT</version>
+    <version>2.2.0</version>
 
     <name>Socomo</name>
 	<description>
@@ -237,6 +237,7 @@
 						<configuration>
 							<quiet>true</quiet>
 							<additionalJOption>-Xdoclint:none</additionalJOption>
+							<additionalOptions>--enable-preview --release 15</additionalOptions>
 						</configuration>
 						<executions>
 							<execution>
