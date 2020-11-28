@@ -4,8 +4,15 @@
 <html lang='en'>
 <head>
     <title>Socomo: Socomo Maven Plugin</title>
-    <link href='https://cdn.jsdelivr.net/gh/gdela/socomo@2.2.0/socomo-view/dist/index.css' rel='stylesheet'/>
-    <script src='https://cdn.jsdelivr.net/gh/gdela/socomo@2.2.0/socomo-view/dist/index.js'></script>
+    <link href='http://localhost:8086/index.css' rel='stylesheet'/>
+    <script src='http://localhost:8086/index.js'></script>
+    <script>
+    if (typeof socomo === 'undefined') document.write(
+      '<i>Socomo 2.3-SNAPSHOT, an in-development version, was used to generate this file. To view it ' +
+      'you need to be running `npm --prefix socomo-view run serve` in your local clone of Socomo.</i>' +
+      '<style>script{display:block;white-space:pre;font-family:monospace;}i{color:red;}</style>'
+    )
+    </script>
     <script src='target/socomo.data' async></script>
     <meta http-equiv='content-type' content='text/html;charset=UTF-8'/>
 </head>
