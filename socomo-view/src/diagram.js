@@ -2,7 +2,7 @@
  * Drawing and controls of the composition diagram (components and dependencies between them).
  */
 
-import {diagramLayout, diagramStyle} from './diagram-skin';
+import {diagramLayout, diagramZooming, diagramStyle} from './diagram-skin';
 import cytoscape from 'cytoscape';
 
 export default drawDiagram;
@@ -25,10 +25,11 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		layout: diagramLayout,
 		boxSelectionEnabled: false,
 		autounselectify: true,
-		wheelSensitivity: 0.3,
-		maxZoom: 1.5,
+		wheelSensitivity: 0.1,
 		elements: {nodes, edges}
 	});
+	cy.ready(diagramZooming);
+	cy.on('resize', diagramZooming);
 
 	// mark upwards dependencies as violations
 	const upwardDependency = edge => edge.target().position('y') < edge.source().position('y');
@@ -73,6 +74,7 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		edge.target().removeClass('highlight-dependency');
 	});
 
+	// invoke dependency selected handler on edge click
 	cy.on('click', 'edge', event => {
 		const edge = event.target;
 		dependencySelectedHandler(
