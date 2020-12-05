@@ -23,8 +23,8 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		container: diagramContainer,
 		style: diagramStyle,
 		layout: diagramLayout,
-		boxSelectionEnabled: false,
-		autounselectify: true,
+		boxSelectionEnabled: true,
+		selectionType: 'additive',
 		wheelSensitivity: 0.1,
 		elements: {nodes, edges}
 	});
@@ -73,6 +73,14 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		edge.source().removeClass('highlight-dependency');
 		edge.target().removeClass('highlight-dependency');
 	});
+
+	// emphasis on nodes selection (selected nodes and edges between them)
+	const markSelectedEdges = () => {
+		const selected = cy.nodes(':selected');
+		cy.edges().removeClass('between-selected');
+		selected.edgesWith(selected).addClass('between-selected');
+	};
+	cy.on('select unselect', 'node', markSelectedEdges);
 
 	// invoke dependency selected handler on edge click
 	cy.on('click', 'edge', event => {

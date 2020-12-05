@@ -33,7 +33,7 @@ const diagramLayout = {
 const diagramZooming = event => {
 	const cy = event.cy;
 	cy.minZoom(0.1); cy.fit(); // to measure zoom needed to fit everything
-	const bigDiagram = cy.zoom() < 1.0;
+	const bigDiagram = cy.zoom() < 0.9;
 	cy.maxZoom(bigDiagram ? 1.1 : 1.5);
 	cy.minZoom(Math.min(1.0, cy.zoom() - 0.1));
 	cy.nodes().toggleClass('on-big-diagram', bigDiagram);
@@ -44,6 +44,7 @@ const diagramZooming = event => {
 // see http://js.cytoscape.org/#style
 const diagramStyle = cytoscape.stylesheet()
 
+	//--- base styles ---//
 	.selector('node')
 	.css({
 		'content': 'data(id)',
@@ -63,11 +64,10 @@ const diagramStyle = cytoscape.stylesheet()
 	})
 	.selector('node.on-big-diagram')
 	.css({
-		'height': '35px',
+		'height': '30px',
 		'width': '100px',
 		'font-size': '14px'
 	})
-
 	.selector('edge')
 	.css({
 		'width': 'mapData(strength, 1, 9, 0.33, 1.45)',
@@ -84,38 +84,34 @@ const diagramStyle = cytoscape.stylesheet()
 	.css({
 		'arrow-scale': 0.8
 	})
-
-	.selector('node.highlight')
-	.css({
-		'background-color': '#aac0f6',
-		'border-color': '#aac0f6',
-	})
-
-	.selector('node.hushed')
-	.css({
-		'opacity': '0.25'
-	})
-
-	.selector('edge.highlight-ingoer')
-	.css({
-		'line-color': '#afb8a2',
-		'target-arrow-color': '#b1baa4',
-		'z-index': 1
-	})
-
-	.selector('edge.highlight-outgoer')
-	.css({
-		'line-color': '#143ea6',
-		'target-arrow-color': '#1441bb',
-		'z-index': 1
-	})
-
 	.selector('edge.violation')
 	.css({
 		'line-color': '#ff4444',
 		'target-arrow-color': '#ff4444'
 	})
 
+	//--- highlighting on node hover ---//
+	.selector('node.highlight')
+	.css({
+		'background-color': '#aac0f6',
+		'border-color': '#aac0f6',
+	})
+	.selector('node.hushed')
+	.css({
+		'opacity': '0.25'
+	})
+	.selector('edge.highlight-ingoer')
+	.css({
+		'line-color': '#afb8a2',
+		'target-arrow-color': '#b1baa4',
+		'z-index': 1
+	})
+	.selector('edge.highlight-outgoer')
+	.css({
+		'line-color': '#143ea6',
+		'target-arrow-color': '#1441bb',
+		'z-index': 1
+	})
 	.selector('edge.hushed')
 	.css({
 		'line-color': '#cfcfcf',
@@ -123,7 +119,13 @@ const diagramStyle = cytoscape.stylesheet()
 		'opacity': '0.15',
 		'z-index': 0
 	})
+	.selector('edge.violation.highlight-ingoer, edge.violation.highlight-outgoer')
+	.css({
+		'line-color': '#FC0000',
+		'target-arrow-color': '#FC0000'
+	})
 
+	//--- highlighting on edge hover ---//
 	.selector('node.highlight-dependency')
 	.css({
 		'background-blacken': 0.15,
@@ -137,9 +139,29 @@ const diagramStyle = cytoscape.stylesheet()
 		'target-arrow-color': '#668855',
 		'line-style': 'dashed'
 	})
-
 	.selector('edge.violation.highlight-dependency')
 	.css({
-		'line-color': '#B80000',
-		'target-arrow-color': '#B80000'
-	});
+		'line-color': '#FC0000',
+		'target-arrow-color': '#FC0000'
+	})
+
+	//--- emphasis on nodes selection ---//
+	.selector('node:selected')
+	.css({
+		'background-color': '#C8ACF6',
+		'border-color': '#C8ACF6',
+	})
+	.selector('edge.between-selected')
+	.css({
+		'width': 'mapData(strength, 1, 9, 0.99, 4.35)',
+		'line-color': '#1D2718',
+		'target-arrow-color': '#1D2718',
+		'arrow-scale': 0.8,
+		'z-index': 1
+	})
+	.selector('edge.violation.between-selected')
+	.css({
+		'line-color': '#FC0000',
+		'target-arrow-color': '#FC0000'
+	})
+;
