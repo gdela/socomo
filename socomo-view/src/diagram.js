@@ -40,7 +40,7 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		node.connectedEdges().filter(upwardDependency).addClass('violation');
 	});
 
-	// highlighting on node hover (single component and all its direct neighbour components)
+	// highlighting on node hover (highlight single component and all its direct neighbour components)
 	cy.on('mouseover', 'node', event => {
 		const node = event.target;
 		cy.elements().subtract(node.outgoers()).subtract(node.incomers()).subtract(node).addClass('hushed');
@@ -56,7 +56,7 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		node.incomers().removeClass('highlight-ingoer');
 	});
 
-	// highlight on edge hover (single dependency with source component and target component)
+	// highlighting on edge hover (highlight single dependency with its source component and target component)
 	let highlightDelay;
 	cy.on('mouseover', 'edge', event => {
 		const edge = event.target;
@@ -74,7 +74,7 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		edge.target().removeClass('highlight-dependency');
 	});
 
-	// emphasis on nodes selection (selected nodes and edges between them)
+	// emphasis on nodes selection (emphasise selected components and dependencies between them)
 	const markSelectedEdges = () => {
 		const selected = cy.nodes(':selected');
 		cy.edges().removeClass('between-selected');
@@ -82,12 +82,38 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 	};
 	cy.on('select unselect', 'node', markSelectedEdges);
 
+	// removing and restoring nodes (hide or undo hide of a component or selected components)
+	const removed = [];
+	cy.on('cxttap', 'node', event => {
+		const node = event.target;
+		const nodesToRemove = node.selected() ? cy.nodes(':selected') : node;
+		node.emit('mouseout'); // clear highlighting
+		nodesToRemove.unselect(); // clear selection state
+		removed.push(nodesToRemove.remove());
+	});
+	cy.on('cxttap', event => {
+		if (happenedOnBackground(event)) {
+			if (removed.length > 0) {
+				const nodesToRestore = removed.pop();
+				nodesToRestore.restore();
+			}
+		}
+	});
+
 	// invoke dependency selected handler on edge click
-	cy.on('click', 'edge', event => {
+	cy.on('tap', 'edge', event => {
 		const edge = event.target;
 		dependencySelectedHandler(
 			level.level + '.' + edge.source().id(),
 			level.level + '.' + edge.target().id()
 		);
 	});
+}
+
+
+/**
+ * Returns true if the event happened on diagram background, not on elements (not on a node or an edge).
+ */
+function happenedOnBackground(event) {
+	return event.target === event.cy;
 }
