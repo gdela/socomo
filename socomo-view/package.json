@@ -39,7 +39,9 @@
     "@babel/polyfill": "^7.12.1",
     "core-js": "^2.6.11",
     "cytoscape": "^3.17.0",
+    "file-saver": "^2.0.5",
     "fontfaceobserver": "^2.1.0",
+    "mousetrap": "^1.6.5",
     "normalize.css": "^8.0.1"
   }
 }

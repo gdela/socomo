@@ -4,6 +4,8 @@
 
 import {diagramLayout, diagramZooming, diagramStyle} from './diagram-skin';
 import cytoscape from 'cytoscape';
+import Mousetrap from 'mousetrap';
+import saveAs from 'file-saver';
 
 export default drawDiagram;
 
@@ -92,11 +94,15 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		removed.push(nodesToRemove.remove());
 	});
 	cy.on('cxttap', event => {
-		if (happenedOnBackground(event)) {
-			if (removed.length > 0) {
-				const nodesToRestore = removed.pop();
-				nodesToRestore.restore();
-			}
+		if (happenedOnBackground(event) && removed.length > 0) {
+			const nodesToRestore = removed.pop();
+			nodesToRestore.restore();
+		}
+	});
+	Mousetrap.bind('u', () => {
+		while (removed.length > 0) {
+			const nodesToRestore = removed.pop();
+			nodesToRestore.restore();
 		}
 	});
 
@@ -107,6 +113,11 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 			level.level + '.' + edge.source().id(),
 			level.level + '.' + edge.target().id()
 		);
+	});
+
+	// saving diagram to png file
+	Mousetrap.bind('s', () => {
+		saveAs(cy.png({ full: true, scale: 3.0, bg: 'white' }), 'diagram.png');
 	});
 }
 
