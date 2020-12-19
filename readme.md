@@ -44,8 +44,8 @@ convenient place - in your source code repository.
 
 ## How to Read Diagrams
 
-The diagram shows composition of your code at some specific level, typically the topmost package
-of the project. Each subpackage at this level is a component represented as node in the diagram.
+The diagram shows composition of your code at some specific _level_, typically the topmost package
+of the project. Each subpackage at this level is a _component_ represented as node in the diagram.
 Components are arranged on the diagram to form layers: a component uses other components that are
 below it, and is used by components that are above it.
 
@@ -53,13 +53,28 @@ below it, and is used by components that are above it.
   <img src="example-acme.png" alt="Composition of sample e-commerce project">
 </p>
 
-The actual dependencies analyzed from the bytecode are represented as edges. The wider the edge,
-the stronger is the dependency between components.
+The actual _dependencies_ analyzed from the bytecode are represented as edges. The wider the edge,
+the stronger is the dependency between components. Click an edge to show details of the dependency
+- what classes and members from one component use which classes and members from the other component.
 
-When you select a component, blue edges show outgoing dependencies pointing to components used
+When you hover over a component, blue edges show outgoing dependencies pointing to components used
 by the selected one, and brown edges show incoming dependencies from the components that use
 the selected one. Red edges are dependencies that point upwards, against the layers, and thus
 are the cause of a cyclic dependency between two or more components.
+
+The diagram is interactive, so that you can distill the information you need:
+
+- <kbd>Click</kbd> dependency to show its details
+- <kbd>Ctrl</kbd>+<kbd>Click</kbd> several components to emphasise dependencies between them
+- <kbd>Ctrl</kbd>+<kbd>Drag</kbd> to select many components and once
+- <kbd>Drag</kbd> a component or selected components around
+- <kbd>Right Click</kbd> component to hide it and its dependencies
+- <kbd>Right Click</kbd> on background to undo component hiding
+- <kbd>U</kbd> to undo hiding all components
+- <kbd>R</kbd> to rearrange the diagram automatically
+- <kbd>Mouse Wheel</kbd> to zoom in and zoom out the diagram
+- <kbd>Drag</kbd> on background to pan the diagram
+- <kbd>S</kbd> to save the diagram as png file
 
 
 ## Best Practices for Composition
@@ -122,9 +137,9 @@ java -jar socomo-standalone-*.jar --help
 ## Compatibility
 
 Socomo is tested on Java 7, Java 8, Java 11, Java 15, and should also work for any interim version.
-If you want to use Socomo Maven Plugin, you need at least Maven 3.2.5. If you use other build tools,
-like Gradle or Sbt, you can use Socomo Standalone, or you can write a plugin and contribute it to
-this project.
+To use [socomo maven plugin](#socomo-maven-plugin), you'll need at least Maven 3.2.5. If you use
+other build tools, like Gradle or Sbt, you can use [socomo standalone](#socomo-standalone), or you
+can write a plugin and contribute it to this project.
 
 
 ## Contributing
