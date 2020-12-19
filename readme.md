@@ -54,8 +54,9 @@ below it, and is used by components that are above it.
 </p>
 
 The actual _dependencies_ analyzed from the bytecode are represented as edges. The wider the edge,
-the stronger is the dependency between components. Click an edge to show details of the dependency
-- what classes and members from one component use which classes and members from the other component.
+the stronger is the dependency between components. Click an edge to show details of the dependency,
+i.e. see what classes and members from one component use which classes and members from the other
+component.
 
 When you hover over a component, blue edges show outgoing dependencies pointing to components used
 by the selected one, and brown edges show incoming dependencies from the components that use
