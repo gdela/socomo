@@ -101,7 +101,8 @@ const diagramStyle = cytoscape.stylesheet()
 	})
 	.selector('node.hushed')
 	.css({
-		'opacity': '0.25'
+		'opacity': '0.25',
+		'border-opacity': '0.25'
 	})
 	.selector('edge.highlight-ingoer')
 	.css({

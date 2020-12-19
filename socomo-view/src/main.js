@@ -7,6 +7,7 @@
 import './main.scss';
 import drawDiagram from './diagram';
 import drawTable from './table';
+import Mousetrap from 'mousetrap';
 
 function socomo() {
 
@@ -47,10 +48,8 @@ function socomo() {
 		}
 	}
 
-	document.addEventListener('keyup', e => {
-		if (e.key === 'Escape' || e.key === 'Esc') {
-			mainTable.style.display = 'none';
-		}
+	Mousetrap.bind('esc', () => {
+		mainTable.style.display = 'none';
 	});
 	mainTable.addEventListener('click', () => {
 		mainTable.style.display = 'none';
