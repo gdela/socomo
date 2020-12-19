@@ -60,7 +60,7 @@ function socomo() {
 function doLongTask(task) {
 	document.body.className = 'loading-state';
 	// the delay is to give browser a chance to render dom changes done so far
-	setTimeout(() => { task(); document.body.className = ''; }, 10);
+	setTimeout(() => { task(); document.body.className = ''; }, 30);
 }
 
 // expose socomo function to the index.js bootstrapping code

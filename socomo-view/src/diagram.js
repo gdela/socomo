@@ -115,10 +115,40 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		);
 	});
 
+	// rearranging nodes according to standard diagram layout
+	Mousetrap.bind('r', () => {
+		doLongTask(() => {
+			const refreshViolations = () => cy.nodes().emit('drag');
+			const refreshIntervalId = setInterval(refreshViolations, 100);
+			const layout = cy.layout({
+				...diagramLayout,
+				animate: true,
+				animationDuration: 1800,
+				animationEasing: 'ease-in-out-cubic'
+			});
+			layout.on('layoutstop', () => {
+				clearInterval(refreshIntervalId);
+				refreshViolations();
+			});
+			layout.run();
+		});
+	});
+
 	// saving diagram to png file
 	Mousetrap.bind('s', () => {
-		saveAs(cy.png({ full: true, scale: 3.0, bg: 'white' }), 'diagram.png');
+		doLongTask(() => {
+			saveAs(cy.png({ full: true, scale: 3.0, bg: 'white' }), 'diagram.png');
+		});
 	});
+
+	/**
+	 * Shows progress indicator during execution of a long task.
+	 */
+	function doLongTask(task) {
+		diagramContainer.style.cursor = 'wait';
+		// the delay is to give browser a chance to render dom changes done so far
+		setTimeout(() => { task(); diagramContainer.style.cursor = ''; }, 30);
+	}
 }
 
 

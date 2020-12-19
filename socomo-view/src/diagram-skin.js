@@ -9,6 +9,8 @@ export { diagramLayout, diagramZooming, diagramStyle };
 // see http://js.cytoscape.org/#layouts
 const diagramLayout = {
 	name: 'klay', // todo: choose between dagre and klay, check also BRANDES_KOEPF node placement
+	fit: true,
+	padding: 10,
 
 	// dagre - https://github.com/cytoscape/cytoscape.js-dagre
 	rankDir: 'TB',
@@ -32,13 +34,14 @@ const diagramLayout = {
 // match zoom limits and element to the size of the diagram
 const diagramZooming = event => {
 	const cy = event.cy;
-	cy.minZoom(0.1); cy.fit(); // to measure zoom needed to fit everything
+	const fitAll = () => cy.fit(cy.nodes(), diagramLayout.padding);
+	cy.minZoom(0.1); fitAll(); // to measure zoom needed to fit everything
 	const bigDiagram = cy.zoom() < 0.9;
 	cy.maxZoom(bigDiagram ? 1.1 : 1.5);
 	cy.minZoom(Math.min(1.0, cy.zoom() - 0.1));
 	cy.nodes().toggleClass('on-big-diagram', bigDiagram);
 	cy.edges().toggleClass('on-big-diagram', bigDiagram);
-	cy.fit(); // to bring back zoom to allowed min-max range
+	fitAll(); // to bring back zoom to allowed min-max range
 };
 
 // see http://js.cytoscape.org/#style
