@@ -168,4 +168,10 @@ const diagramStyle = cytoscape.stylesheet()
 		'line-color': '#FC0000',
 		'target-arrow-color': '#FC0000'
 	})
+	.selector('core')
+	.css({
+		'selection-box-color': '#C8ACF6',
+		'selection-box-border-width': 0,
+		'selection-box-opacity': 0.5
+	})
 ;
