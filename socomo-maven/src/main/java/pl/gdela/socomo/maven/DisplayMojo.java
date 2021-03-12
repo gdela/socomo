@@ -6,7 +6,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 /**
  * Maven plugin to execute Socomo analysis and display results in the browser.
  */
-@Mojo(name = "display")
+@Mojo(name = "display", threadSafe = true)
 public class DisplayMojo extends SocomoMojo {
 
 	private static int numberOfDisplays;
@@ -20,7 +20,6 @@ public class DisplayMojo extends SocomoMojo {
 	void afterExecute() {
 		if (tooManyDisplays()) return;
 		socomo.display();
-
 	}
 
 	/**

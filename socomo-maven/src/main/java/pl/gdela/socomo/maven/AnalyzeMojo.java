@@ -8,7 +8,7 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.PACKAGE;
 /**
  * Maven plugin to execute Socomo analysis.
  */
-@Mojo(name = "analyze", defaultPhase = PACKAGE)
+@Mojo(name = "analyze", defaultPhase = PACKAGE, threadSafe = true)
 public class AnalyzeMojo extends SocomoMojo {
 
 	@Override
