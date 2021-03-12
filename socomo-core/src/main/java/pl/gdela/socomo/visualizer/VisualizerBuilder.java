@@ -105,7 +105,7 @@ public class VisualizerBuilder {
 	 * Returns relative path from parent directory of one file to another file.
 	 */
 	private static String urlFromTo(File fromFile, File toFile) {
-		Path parentDirectory = fromFile.toPath().getParent().toAbsolutePath();
+		Path parentDirectory = fromFile.toPath().toAbsolutePath().getParent();
 		Path target = toFile.toPath().toAbsolutePath();
 		return parentDirectory.relativize(target).toString().replace('\\', '/');
 	}
