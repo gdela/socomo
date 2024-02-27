@@ -23,9 +23,12 @@
 
 # Maven & Npm
 target/
+dependency-reduced-pom.xml
 node/
 node_modules/
 
 # Project Specific
 /catfood/
 /debug.log
+socomo.data
+socomo.html

@@ -12,13 +12,12 @@ import org.junit.runner.RunWith;
  * you need to run {@code mvn compile} to have them compiled by maven as defined in the
  * {@code pom.xml} file of this module.
  */
-@Ignore // see the note in pom.xml
 @RunWith(Enclosed.class)
-public final class Java15TestSuite {
+public final class Java17TestSuite {
 
-	private static final File FIXTURE_ROOT = new File("target/classes_java15/fixture/");
+	private static final File FIXTURE_ROOT = new File("target/classes_java17/fixture/");
 
-	private Java15TestSuite() {}
+	private Java17TestSuite() {}
 
 	public static class T1 extends ClassAnalysisTest { public T1() { super(FIXTURE_ROOT); } }
 	public static class T2 extends FieldAnalysisTest { public T2() { super(FIXTURE_ROOT); } }
