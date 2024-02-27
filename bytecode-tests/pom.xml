@@ -32,6 +32,22 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -50,7 +66,7 @@
 								<source>src/main/java7</source>
 								<source>src/main/java8</source>
 								<source>src/main/java11</source>
-								<source>src/main/java15</source>
+								<source>src/main/java17</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -77,11 +93,24 @@
 						<phase>compile</phase>
 						<configuration>
 							<target>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="maven.plugin.classpath"/>
 								<!-- only LTS versions and latest Java version are tested here -->
 								<mkdir dir="target/classes_java7"/>
-								<javac destdir="target/classes_java7" release="7" debug="true" includeantruntime="false">
-									<src path="src/main/java7"/>
-								</javac>
+								<if>
+									<or>
+										<equals arg1="${java.specification.version}" arg2="7"/>
+									</or>
+									<then>
+										<javac destdir="target/classes_java7" release="7" debug="true" includeantruntime="false">
+											<src path="src/main/java7"/>
+										</javac>
+									</then>
+									<else>
+										<javac destdir="target/classes_java7" release="8" debug="true" includeantruntime="false">
+											<src path="src/main/java7"/>
+										</javac>
+									</else>
+								</if>
 								<mkdir dir="target/classes_java8"/>
 								<javac destdir="target/classes_java8" release="8" debug="true" includeantruntime="false">
 									<src path="src/main/java7"/>
@@ -93,21 +122,30 @@
 									<src path="src/main/java8"/>
 									<src path="src/main/java11"/>
 								</javac>
-								<!--
-								no way to enable-preview using javac ant task, so need to wait till records and sealed are standard
-								for example in java 17, and then rename this to java17 and stop using/testing preview features
-								<mkdir dir="target/classes_java15"/>
-								<javac destdir="target/classes_java15" release="15" debug="true" includeantruntime="false">
+								<mkdir dir="target/classes_java17"/>
+								<javac destdir="target/classes_java17" release="17" debug="true" includeantruntime="false">
 									<src path="src/main/java7"/>
 									<src path="src/main/java8"/>
 									<src path="src/main/java11"/>
-									<src path="src/main/java15"/>
+									<src path="src/main/java17"/>
 								</javac>
-								-->
 							</target>
 						</configuration>
 					</execution>
 				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<exclusions>
+							<exclusion>
+								<groupId>ant</groupId>
+								<artifactId>ant</artifactId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -130,4 +168,36 @@
 		</plugins>
 	</build>
 
+	<!--profiles>
+		<profile>
+			<id>java7</id>
+			<activation>
+				<jdk>1.7</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>add-source</goal>
+								</goals>
+								<configuration>
+									<sources>
+										<source>src/main/java7</source>
+										<source>src/main/java8</source>
+										<source>src/main/java11</source>
+										<source>src/main/java15</source>
+									</sources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles-->
 </project>
