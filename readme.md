@@ -179,7 +179,7 @@ a free Sonargraph Explorer to visualize and explore dependencies in the code.
 [Softagram](https://softagram.com/products/) - a little bit different tool, adds report
 of changes to the software structure as a comment to pull request.
 
-Most of the above have plugins for SonarQube, a widely used "Continous Inspection" system. They can
+Most of the above have plugins for SonarQube, a widely used "Continuous Inspection" system. They can
 also be used from within IntelliJ/Eclipse, though having a standalone GUI for visualizing software
 structure feels more ergonomic.
 
