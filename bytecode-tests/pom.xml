@@ -47,7 +47,6 @@
 						</goals>
 						<configuration>
 							<sources>
-								<source>src/main/java7</source>
 								<source>src/main/java8</source>
 								<source>src/main/java11</source>
 								<source>src/main/java17</source>
@@ -62,7 +61,6 @@
 				<configuration>
 					<!-- the highest java version for which we have tests -->
 					<release>17</release>
-					<compilerArgument>--enable-preview</compilerArgument>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -78,24 +76,17 @@
 						<configuration>
 							<target>
 								<!-- only LTS versions and latest Java version are tested here -->
-								<mkdir dir="target/classes_java7"/>
-								<javac destdir="target/classes_java7" release="7" debug="true" includeantruntime="false">
-									<src path="src/main/java7"/>
-								</javac>
 								<mkdir dir="target/classes_java8"/>
 								<javac destdir="target/classes_java8" release="8" debug="true" includeantruntime="false">
-									<src path="src/main/java7"/>
 									<src path="src/main/java8"/>
 								</javac>
 								<mkdir dir="target/classes_java11"/>
 								<javac destdir="target/classes_java11" release="11" debug="true" includeantruntime="false">
-									<src path="src/main/java7"/>
 									<src path="src/main/java8"/>
 									<src path="src/main/java11"/>
 								</javac>
 								<mkdir dir="target/classes_java17"/>
 								<javac destdir="target/classes_java17" release="17" debug="true" includeantruntime="false">
-									<src path="src/main/java7"/>
 									<src path="src/main/java8"/>
 									<src path="src/main/java11"/>
 									<src path="src/main/java17"/>
