@@ -137,7 +137,7 @@ java -jar socomo-standalone-*.jar --help
 
 ## Compatibility
 
-Socomo is tested on Java 7, Java 8, Java 11, Java 15, and should also work for any interim version.
+Socomo is tested on Java 7, Java 8, Java 11, Java 17, and should also work for any interim version.
 To use [socomo maven plugin](#socomo-maven-plugin), you'll need at least Maven 3.2.5. If you use
 other build tools, like Gradle or Sbt, you can use [socomo standalone](#socomo-standalone), or you
 can write a plugin and contribute it to this project.

@@ -50,7 +50,7 @@
 								<source>src/main/java7</source>
 								<source>src/main/java8</source>
 								<source>src/main/java11</source>
-								<source>src/main/java15</source>
+								<source>src/main/java17</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -61,7 +61,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<!-- the highest java version for which we have tests -->
-					<release>15</release>
+					<release>17</release>
 					<compilerArgument>--enable-preview</compilerArgument>
 				</configuration>
 			</plugin>
@@ -93,17 +93,13 @@
 									<src path="src/main/java8"/>
 									<src path="src/main/java11"/>
 								</javac>
-								<!--
-								no way to enable-preview using javac ant task, so need to wait till records and sealed are standard
-								for example in java 17, and then rename this to java17 and stop using/testing preview features
-								<mkdir dir="target/classes_java15"/>
-								<javac destdir="target/classes_java15" release="15" debug="true" includeantruntime="false">
+								<mkdir dir="target/classes_java17"/>
+								<javac destdir="target/classes_java17" release="17" debug="true" includeantruntime="false">
 									<src path="src/main/java7"/>
 									<src path="src/main/java8"/>
 									<src path="src/main/java11"/>
-									<src path="src/main/java15"/>
+									<src path="src/main/java17"/>
 								</javac>
-								-->
 							</target>
 						</configuration>
 					</execution>

@@ -3,13 +3,20 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/bytecode-tests" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/bytecode-tests/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/bytecode-tests/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/socomo-core" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/socomo-core/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/socomo-core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/socomo-core/src/main/resources/simplelogger.properties" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/socomo-maven" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/socomo-maven/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/socomo-maven/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/socomo-view" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/socomo-view/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/socomo-view/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>

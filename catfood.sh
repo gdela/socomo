@@ -9,6 +9,7 @@ if [[ "$*" = "init" ]]; then
 	maven_version=$(grep -o '<maven.version>.*</maven.version>' -m 1 ../socomo-maven/pom.xml | sed 's/<[^>]*>//g')
 	../mvnw -q -N io.takari:maven:wrapper -Dmaven=${maven_version}
 	echo '~~~ Downloading some projects to use Socomo on them ~~~'
+	[[ -d java-java17 ]] || git clone https://github.com/claudioaltamura/java-java17.git
 	[[ -d guava ]] || git clone https://github.com/google/guava.git
 	[[ -d commons-lang ]] || git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git
 	[[ -d assertj-core ]] || git clone https://github.com/joel-costigliola/assertj-core.git
