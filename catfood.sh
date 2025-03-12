@@ -10,6 +10,7 @@ if [[ "$*" = "init" ]]; then
 	../mvnw -q -N io.takari:maven:wrapper -Dmaven=${maven_version}
 	echo '~~~ Downloading some projects to use Socomo on them ~~~'
 	[[ -d java-java17 ]] || git clone https://github.com/claudioaltamura/java-java17.git
+	[[ -d java21-examples ]] || git clone https://github.com/loiane/java21-examples.git
 	[[ -d guava ]] || git clone https://github.com/google/guava.git
 	[[ -d commons-lang ]] || git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git
 	[[ -d assertj-core ]] || git clone https://github.com/joel-costigliola/assertj-core.git

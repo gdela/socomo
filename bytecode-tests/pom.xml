@@ -50,6 +50,7 @@
 								<source>src/main/java8</source>
 								<source>src/main/java11</source>
 								<source>src/main/java17</source>
+								<source>src/main/java21</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -60,7 +61,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<!-- the highest java version for which we have tests -->
-					<release>17</release>
+					<release>21</release>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -90,6 +91,13 @@
 									<src path="src/main/java8"/>
 									<src path="src/main/java11"/>
 									<src path="src/main/java17"/>
+								</javac>
+								<mkdir dir="target/classes_java21"/>
+								<javac destdir="target/classes_java21" release="21" debug="true" includeantruntime="false">
+									<src path="src/main/java8"/>
+									<src path="src/main/java11"/>
+									<src path="src/main/java17"/>
+									<src path="src/main/java21"/>
 								</javac>
 							</target>
 						</configuration>

@@ -14,7 +14,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="bytecode-tests" options="--enable-preview" />
+      <module name="bytecode-tests" options="" />
     </option>
   </component>
 </project>
