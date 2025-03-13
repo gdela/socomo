@@ -16,10 +16,10 @@ function drawTable(tableContainer, codemap, fromComponentName, toComponentName) 
 }
 
 function filterAndRelativize(packageDeps, fromComponentName, toComponentName) {
+	const trimRoot = (componentName) => componentName.replace('.[root]', '').replace('[root]', '');
 	const belongsTo = (componentName, packet) => {
 		if (componentName.endsWith('[root]')) {
-			const rootPacketName = componentName.replace('.[root]', '');
-			return packet.fqn === rootPacketName;
+			return packet.fqn === trimRoot(componentName);
 		} else {
 			return packet.fqn.startsWith(componentName);
 		}
@@ -33,10 +33,10 @@ function filterAndRelativize(packageDeps, fromComponentName, toComponentName) {
 			return {
 				...packageDep,
 				from: {
-					relativeName: packageDep.from.fqn.replace(fromComponentName.replace('.[root]', ''), '')
+					relativeName: packageDep.from.fqn.replace(trimRoot(fromComponentName), '')
 				},
 				to: {
-					relativeName: packageDep.to.fqn.replace(toComponentName.replace('.[root]', ''), '')
+					relativeName: packageDep.to.fqn.replace(trimRoot(toComponentName), '')
 				}
 			};
 		});

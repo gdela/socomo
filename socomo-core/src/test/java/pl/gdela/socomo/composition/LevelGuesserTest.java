@@ -34,4 +34,22 @@ public class LevelGuesserTest {
 		// then
 		assertThat(mostInterestingLevel).isEqualTo("com.beta.bla");
 	}
+
+	@Test
+	public void guesses_top_level() {
+		// given
+		Codemap codemap = new CodemapBuilder()
+			.member("C01")
+			.member("C02")
+			.member("C03")
+			.member("foo.C05")
+			.member("bla.C06")
+			.getCodemap();
+
+		// when
+		String mostInterestingLevel = guessLevel(codemap);
+
+		// then
+		assertThat(mostInterestingLevel).isEqualTo("");
+	}
 }

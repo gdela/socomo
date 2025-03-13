@@ -109,9 +109,10 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 	// invoke dependency selected handler on edge click
 	cy.on('tap', 'edge', event => {
 		const edge = event.target;
+		const prefix = level.level !== '' ? (level.level + '.') : '';
 		dependencySelectedHandler(
-			level.level + '.' + edge.source().id(),
-			level.level + '.' + edge.target().id()
+			prefix + edge.source().id(),
+			prefix + edge.target().id()
 		);
 	});
 

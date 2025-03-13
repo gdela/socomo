@@ -96,7 +96,7 @@ public class CodePackage implements Comparable<CodePackage> {
 
 	@Override
 	public String toString() {
-		return fqn;
+		return fqn.isEmpty() ? "[top]" : fqn;
 	}
 
 	@Override

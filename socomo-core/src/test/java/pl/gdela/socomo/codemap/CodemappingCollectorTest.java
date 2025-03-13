@@ -12,6 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static pl.gdela.socomo.codemap.CodemapTestUtils.asStrings;
 import static pl.gdela.socomo.codemap.CodemapTestUtils.fromOrigin;
 import static pl.gdela.socomo.codemap.DepType.CALLS;
+import static pl.gdela.socomo.codemap.DepType.EXTENDS;
+import static pl.gdela.socomo.codemap.DepType.REFERENCES;
 import static pl.gdela.socomo.codemap.Origin.EXTERNAL;
 import static pl.gdela.socomo.codemap.Origin.MAIN;
 
@@ -125,5 +127,36 @@ public class CodemappingCollectorTest {
 	@Test
 	public void check_package_sizes() {
 		assertThat(alfa.size()).as("size of %s", alfa).isEqualTo(beta.size() * 2);
+	}
+
+	@Test
+	public void root_package() {
+		// when
+		CodemappingCollector collector = new CodemappingCollector();
+		collector.enterClass("Top1");
+		collector.markDependency(EXTENDS, "Top2", null);
+		collector.enterMember("main1");
+		collector.markDependency(CALLS, "Top2", "main2");
+		collector.markDependency(REFERENCES, "sub.Sub", null);
+		collector.markDependency(CALLS, "sub.Sub", "subMain");
+		Codemap topLevelMap = collector.getCodemap();
+		CodePackage topLevelPacket = topLevelMap.packet("");
+
+		// then
+		assertThat(asStrings(topLevelMap.packageDeps())).as("package deps").containsExactly(
+			"[top] -> [top]",
+			"[top] -> sub"
+		);
+
+		PackageDep selfDeps = topLevelMap.packageDep(topLevelPacket, topLevelPacket);
+		assertThat(asStrings(selfDeps.memberDeps())).as("self deps in top level").containsExactly(
+			"Top1 -> Top2",
+			"Top1.main1 -> Top2.main2"
+		);
+
+		assertThat(asStrings(topLevelPacket.members())).as("top level members").containsExactly(
+			"Top1", "Top1.main1",
+			"Top2", "Top2.main2"
+		);
 	}
 }
