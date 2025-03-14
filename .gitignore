@@ -23,6 +23,7 @@
 
 # Maven & Npm
 target/
+dependency-reduced-pom.xml
 node/
 node_modules/
 
