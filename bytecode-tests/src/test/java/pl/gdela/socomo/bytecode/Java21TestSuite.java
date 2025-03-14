@@ -25,5 +25,6 @@ public final class Java21TestSuite {
 	public static class T5 extends RecordAnalysisTest { public T5() { super(FIXTURE_ROOT); } }
 	public static class T6 extends SealedAnalysisTest { public T6() { super(FIXTURE_ROOT); } }
 	public static class T7 extends Method17AnalysisTest { public T7() { super(FIXTURE_ROOT); } }
+	public static class T8 extends PatternsAnalysisTest { public T8() { super(FIXTURE_ROOT); } }
 
 }
