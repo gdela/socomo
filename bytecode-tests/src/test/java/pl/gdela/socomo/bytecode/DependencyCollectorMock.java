@@ -39,8 +39,16 @@ class DependencyCollectorMock implements DependencyCollector {
 		return this;
 	}
 
+	DependencyCollectorMock expectForSource(String sourceClassName, String sourceMember) {
+		return expectForSource(loadClass(sourceClassName), sourceMember);
+	}
+
 	DependencyCollectorMock expectForSource(Class sourceClass) {
 		return expectForSource(sourceClass, null);
+	}
+
+	DependencyCollectorMock expectForSource(String sourceClassName) {
+		return expectForSource(loadClass(sourceClassName), null);
 	}
 
 	DependencyCollectorMock target(DepType type, Class targetClass, String targetMember) {

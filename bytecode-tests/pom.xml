@@ -51,6 +51,7 @@
 								<source>src/main/java11</source>
 								<source>src/main/java17</source>
 								<source>src/main/java21</source>
+								<source>src/main/java23</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -61,7 +62,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<!-- the highest java version for which we have tests -->
-					<release>21</release>
+					<release>23</release>
+					<compilerArgs>--enable-preview</compilerArgs>
 				</configuration>
 			</plugin>
 			<plugin>

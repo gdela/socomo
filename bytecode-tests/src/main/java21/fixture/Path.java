@@ -1,4 +1,4 @@
 package fixture;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings("all")
 public record Path<P extends Position>(P from, P to) {}

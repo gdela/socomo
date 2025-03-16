@@ -1,6 +1,6 @@
 package fixture;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings("all")
 public class MyPatterns {
 	String describe(Object object) {
 		return switch (object) {

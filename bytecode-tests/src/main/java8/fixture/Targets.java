@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
  * 'alfa', 'beta', 'gamma', so that it's easy to correlate the fixture code, with the
  * bytecode analyzer test assertions.
  */
-@SuppressWarnings("ALL")
+@SuppressWarnings("all")
 public final class Targets {
 
 	public static class _Base {

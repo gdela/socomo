@@ -42,6 +42,14 @@ public abstract class BytecodeAnalyzerTestBase {
 		return collector.expectForSource(sourceClass, sourceMember);
 	}
 
+	DependencyCollectorMock expectForSource(String sourceClass) {
+		return collector.expectForSource(sourceClass);
+	}
+
+	DependencyCollectorMock expectForSource(String sourceClass, String sourceMember) {
+		return collector.expectForSource(sourceClass, sourceMember);
+	}
+
 	@After
 	public void analyzeAndVerify() {
 		validState(bytecodeFile != null, "the file to be analyzed was not specified");
