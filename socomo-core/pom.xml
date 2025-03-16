@@ -119,6 +119,7 @@
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
 							</transformers>
 							<minimizeJar>true</minimizeJar>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
 							<finalName>socomo-standalone-${project.version}</finalName>
 							<outputFile>${project.build.directory}/socomo-standalone-${project.version}.jar</outputFile>
 						</configuration>
