@@ -12,11 +12,15 @@ composition as you progress with the development of your java project. You can u
 - Assure that architecture of your project is not being broken by seeing what new dependencies are added.
 - Brag on your blog or twitter how great the structure of your code is, proving it with the diagrams.
 
-See Socomo in action on the Guava project:
+See example of how Socomo represents the structure of the Guava project ([full experience][socomo of guava]):
 
 <p align="center">
+  <a href="https://gdela.pl/socomo-of-guava/socomo.html">
   <img src="example-guava.gif" alt="Composition of Guava viewed in Socomo">
+  </a>
 </p>
+
+[socomo of guava]: https://gdela.pl/socomo-of-guava/socomo.html
 
 
 ## Quick Start
@@ -96,7 +100,7 @@ Those principles will help you avoid your project being a [big ball of mud].
 
 [screaming architecture]: https://blog.cleancoder.com/uncle-bob/2011/09/30/Screaming-Architecture.html
 [trivial grouping]: https://devcards.io/trivial-grouping-of-classes
-[cyclic dependencies]: https://lattix.com/blog/2017/07/26/why-cyclic-dependencies-are-bad
+[cyclic dependencies]: https://blog.lattix.com/why-cyclic-dependencies-are-a-problem
 [big ball of mud]: http://www.mamuz.de/article/from-big-ball-of-mud-to-emergent-design/0Pw682Kxk
 
 
