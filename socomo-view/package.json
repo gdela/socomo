@@ -20,7 +20,7 @@
     "browserlist": "^1.0.1",
     "css-loader": "^2.1.1",
     "disable-output-webpack-plugin": "^1.0.1",
-    "eslint": "^5.16.0",
+    "eslint": "^9.32.0",
     "eslint-loader": "^2.2.1",
     "mini-css-extract-plugin": "^0.5.0",
     "node-sass": "^4.14.1",
