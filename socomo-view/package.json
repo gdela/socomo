@@ -31,7 +31,7 @@
     "stylelint-no-unsupported-browser-features": "^3.0.2",
     "stylelint-scss": "^3.18.0",
     "stylelint-webpack-plugin": "^0.10.5",
-    "webpack": "^4.44.2",
+    "webpack": "^5.104.1",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
   },
