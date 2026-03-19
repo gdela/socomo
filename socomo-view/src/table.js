@@ -7,9 +7,9 @@ import './table.scss';
 
 export default drawTable;
 
-function drawTable(tableContainer, codemap, fromComponentName, toComponentName) {
+function drawTable(tableContainer, codemap, fromComponentName, toComponentName, keyword) {
 	const filteredDeps = filterAndRelativize(codemap.packageDeps, fromComponentName, toComponentName);
-	const table = createTable(filteredDeps, fromComponentName, toComponentName);
+	const table = createTable(filteredDeps, fromComponentName, toComponentName, keyword);
 	tableContainer.innerHTML = '';
 	tableContainer.appendChild(table);
 	return table;
@@ -42,7 +42,7 @@ function filterAndRelativize(packageDeps, fromComponentName, toComponentName) {
 		});
 }
 
-function createTable(packageDeps, fromComponentName, toComponentName) {
+function createTable(packageDeps, fromComponentName, toComponentName, keyword) {
 	const thead = document.createElement('thead');
 	thead.insertRow().innerHTML = `
 		<th colspan="2">${fromComponentName}</th>
@@ -52,13 +52,20 @@ function createTable(packageDeps, fromComponentName, toComponentName) {
 	const tbody = document.createElement('tbody');
 	for (const packageDep of packageDeps) {
 		for (const memberDep of packageDep.memberDeps) {
-			tbody.insertRow().innerHTML = `
-				<td>${fromPackageAndClassName(packageDep, memberDep)}</td>
-				<td>${fromMemberName(memberDep)}</td>
-				<td>&rightarrow;</td>
-				<td>${toMemberName(memberDep)}</td>
-				<td>${toPackageAndClassName(packageDep, memberDep)}</td>
-			`;
+			if (!keyword ||
+				(memberDep.from.className && memberDep.from.className.includes(keyword)) ||
+				(memberDep.from.memberName && memberDep.from.memberName.includes(keyword)) ||
+				(memberDep.to.className && memberDep.to.className.includes(keyword)) ||
+				(memberDep.to.memberName && memberDep.to.memberName.includes(keyword))
+			) {
+				tbody.insertRow().innerHTML = `
+					<td>${fromPackageAndClassName(packageDep, memberDep)}</td>
+					<td>${fromMemberName(memberDep)}</td>
+					<td>&rightarrow;</td>
+					<td>${toMemberName(memberDep)}</td>
+					<td>${toPackageAndClassName(packageDep, memberDep)}</td>
+				`;
+			}
 		}
 	}
 	const table = document.createElement('table');

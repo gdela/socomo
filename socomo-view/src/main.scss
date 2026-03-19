@@ -14,6 +14,26 @@ body {
 	flex: 0 0;
 	color: #ffffff;
 	background: #a3c7c1;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px;
+}
+
+#search-container {
+	display: flex;
+	gap: 10px;
+}
+
+#search-input {
+	padding: 5px;
+	font-size: 14px;
+}
+
+#search-button {
+	padding: 5px 10px;
+	font-size: 14px;
+	cursor: pointer;
 }
 
 #content-container {
