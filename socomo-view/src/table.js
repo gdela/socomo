@@ -174,33 +174,31 @@ function addIncoming(incomingByTarget, key, caller) {
 function traceToTop(reverseGraph, target) {
 	const visitedCycles = [];
 	const targetRef = normalizeRef(target);
-	const chains = [];
-	traceRecursively(reverseGraph, targetRef, [targetRef], chains, visitedCycles);
-	chains.sort((left, right) => formatChain(left).localeCompare(formatChain(right)));
-	return {target: targetRef, chains, visitedCycles};
-}
-
-function traceRecursively(reverseGraph, target, currentPath, chains, visitedCycles) {
 	const callers = Array.from(reverseGraph.get(toKey(target)) || [])
 		.map(([, caller]) => caller)
 		.sort((left, right) => formatRef(left).localeCompare(formatRef(right)));
-	if (callers.length === 0) {
-		chains.push(currentPath.slice());
-		return;
-	}
-	let hasExpanded = false;
+	const roots = callers.map(caller =>
+		buildTraceNode(reverseGraph, normalizeRef(caller), [targetRef, normalizeRef(caller)], visitedCycles)
+	);
+	return {target: targetRef, roots, visitedCycles};
+}
+
+function buildTraceNode(reverseGraph, current, path, visitedCycles) {
+	const callers = Array.from(reverseGraph.get(toKey(current)) || [])
+		.map(([, caller]) => normalizeRef(caller))
+		.sort((left, right) => formatRef(left).localeCompare(formatRef(right)));
+	const parents = [];
 	for (const caller of callers) {
-		const callerRef = normalizeRef(caller);
-		if (currentPath.some(step => toKey(step) === toKey(callerRef))) {
-			visitedCycles.push([callerRef, ...currentPath]);
+		if (path.some(step => toKey(step) === toKey(caller))) {
+			visitedCycles.push([caller, ...path.slice().reverse()]);
 			continue;
 		}
-		hasExpanded = true;
-		traceRecursively(reverseGraph, callerRef, [callerRef, ...currentPath], chains, visitedCycles);
+		parents.push(buildTraceNode(reverseGraph, caller, [...path, caller], visitedCycles));
 	}
-	if (!hasExpanded) {
-		chains.push(currentPath.slice());
-	}
+	return {
+		ref: current,
+		parents
+	};
 }
 
 function renderCallTrace(tracePanel, result) {
@@ -211,10 +209,11 @@ function renderCallTrace(tracePanel, result) {
 
 	const targetLine = document.createElement('p');
 	targetLine.className = 'call-trace-target';
-	targetLine.textContent = '目标: ' + formatRef(result.target);
+	targetLine.textContent = '目标: ' + formatCompactRef(result.target);
+	targetLine.title = formatRef(result.target);
 	tracePanel.appendChild(targetLine);
 
-	if (result.chains.length === 1 && result.chains[0].length === 1) {
+	if (result.roots.length === 0) {
 		const empty = document.createElement('p');
 		empty.className = 'call-trace-placeholder';
 		empty.textContent = '没有找到继续向上调用它的方法。';
@@ -222,32 +221,7 @@ function renderCallTrace(tracePanel, result) {
 		return;
 	}
 
-	const list = document.createElement('div');
-	list.className = 'call-trace-list';
-	for (const chain of result.chains) {
-		const item = document.createElement('div');
-		item.className = 'call-trace-item';
-		for (const [index, step] of chain.entries()) {
-			if (index > 0) {
-				const arrow = document.createElement('span');
-				arrow.className = 'call-trace-arrow';
-				arrow.textContent = ' -> ';
-				item.appendChild(arrow);
-			}
-			const button = document.createElement('button');
-			button.type = 'button';
-			button.className = 'trace-link';
-			button.dataset.packageFqn = step.packageFqn;
-			button.dataset.className = step.className;
-			if (step.memberName) {
-				button.dataset.memberName = step.memberName;
-			}
-			button.textContent = formatRef(step);
-			item.appendChild(button);
-		}
-		list.appendChild(item);
-	}
-	tracePanel.appendChild(list);
+	tracePanel.appendChild(renderTraceForest(result.roots));
 
 	if (result.visitedCycles.length > 0) {
 		const note = document.createElement('p');
@@ -265,6 +239,54 @@ function normalizeRef(ref) {
 	};
 }
 
+function renderTraceForest(roots) {
+	const list = document.createElement('ul');
+	list.className = 'call-trace-tree';
+	for (const root of roots) {
+		list.appendChild(renderTraceNode(root));
+	}
+	return list;
+}
+
+function renderTraceNode(node) {
+	const item = document.createElement('li');
+	item.className = 'call-trace-node';
+	item.appendChild(createTraceButton(node.ref));
+	if (node.parents.length > 0) {
+		const children = document.createElement('ul');
+		children.className = 'call-trace-tree';
+		for (const parent of node.parents) {
+			children.appendChild(renderTraceNode(parent));
+		}
+		item.appendChild(children);
+	}
+	return item;
+}
+
+function createTraceButton(ref) {
+	const button = document.createElement('button');
+	button.type = 'button';
+	button.className = 'trace-link trace-node-link';
+	button.dataset.packageFqn = ref.packageFqn;
+	button.dataset.className = ref.className;
+	if (ref.memberName) {
+		button.dataset.memberName = ref.memberName;
+	}
+	button.title = formatRef(ref);
+
+	const primary = document.createElement('span');
+	primary.className = 'trace-node-primary';
+	primary.textContent = formatCompactRef(ref);
+	button.appendChild(primary);
+
+	const secondary = document.createElement('span');
+	secondary.className = 'trace-node-secondary';
+	secondary.textContent = shortenPackage(ref.packageFqn);
+	button.appendChild(secondary);
+
+	return button;
+}
+
 function toKey(ref) {
 	return [ref.packageFqn, ref.className, ref.memberName || ''].join('#');
 }
@@ -273,8 +295,14 @@ function formatRef(ref) {
 	return [ref.packageFqn, ref.className, ref.memberName].filter(x => x).join('.');
 }
 
-function formatChain(chain) {
-	return chain.map(formatRef).join(' -> ');
+function formatCompactRef(ref) {
+	return ref.memberName ? (ref.className + '.' + ref.memberName) : ref.className;
+}
+
+function shortenPackage(packageFqn) {
+	const segments = packageFqn.split('.').filter(Boolean);
+	if (segments.length <= 2) return packageFqn;
+	return '...' + segments.slice(-2).join('.');
 }
 
 function fromPackageAndClassName(packageDep, memberDep) {
