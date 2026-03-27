@@ -155,7 +155,8 @@ function socomo() {
 	Mousetrap.bind('esc', () => {
 		mainTable.style.display = 'none';
 	});
-	mainTable.addEventListener('click', () => {
+	mainTable.addEventListener('click', event => {
+		if (event.target !== mainTable) return;
 		mainTable.style.display = 'none';
 	});
 }

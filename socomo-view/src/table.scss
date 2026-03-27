@@ -1,10 +1,12 @@
 #table-wrapper {
 	border: 5px solid #d0e0ec;
+	background: #fafafa;
 }
 
 table {
 	border-collapse: collapse;
 	background: #fafafa;
+	width: 100%;
 }
 
 table td {
@@ -41,4 +43,51 @@ table > tbody > {
 		font-size: 10px;
 		color: #bbbbbb;
 	}
+}
+
+.trace-link {
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #1b5e8d;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.trace-link:hover {
+	text-decoration: underline;
+}
+
+#call-trace-panel {
+	border-top: 1px solid #d0e0ec;
+	padding: 12px 14px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+#call-trace-panel h3 {
+	margin: 0 0 8px;
+	font-size: 14px;
+}
+
+.call-trace-target,
+.call-trace-placeholder,
+.call-trace-note {
+	margin: 0 0 8px;
+	color: #4a5560;
+}
+
+.call-trace-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.call-trace-item {
+	word-break: break-word;
+}
+
+.call-trace-arrow {
+	color: #7a8a99;
 }
