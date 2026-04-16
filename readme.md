@@ -37,6 +37,12 @@ Alternatively, for a jar file, download the [latest release] and do this:
 java -jar socomo-standalone.jar -d path/to/your.jar
 ```
 
+You can also analyze several jars or class directories together, so dependencies between them are included in the same diagram:
+
+```bash
+java -jar socomo-standalone.jar app.jar common.jar target/classes
+```
+
 Either of the above commands generates the `socomo.html` file and opens it in the browser.
 You'll be presented with an interactive visualization of the structure of the code.
 

@@ -33,6 +33,7 @@ public class Codemap {
 
 	private final Map<DepKey, PackageDep> packageDeps = new TreeMap<>();
 
+	@JsonProperty
 	public Collection<CodePackage> packages() {
 		return packages.values();
 	}

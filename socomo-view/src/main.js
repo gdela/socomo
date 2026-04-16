@@ -19,12 +19,18 @@ function socomo() {
 
 	const module = composition[0];
 	const moduleName = module.module;
-	const level = composition[1];
-	const levelName = level.level;
+	const initialLevel = composition[1];
+	const rootLevelName = initialLevel.level;
 
 	document.body.innerHTML += `
 	<div id="header-container">
-		<h1>${moduleName} &nbsp;&#x276d;&nbsp; <code>${levelName}</code></h1>
+		<div id="title-container">
+			<h1>${moduleName}</h1>
+			<div id="level-navigation">
+				<button id="level-up-button" type="button">收起最近展开</button>
+				<div id="breadcrumb"></div>
+			</div>
+		</div>
 		<div id="search-container">
 			<input type="text" id="search-input" placeholder="search">
 			<button id="search-button">搜索</button>
@@ -37,59 +43,222 @@ function socomo() {
 
 	const mainDiagram = document.getElementById('main-diagram');
 	const mainTable = document.getElementById('main-table');
+	const searchInput = document.getElementById('search-input');
+	const searchButton = document.getElementById('search-button');
+	const levelUpButton = document.getElementById('level-up-button');
+	const breadcrumb = document.getElementById('breadcrumb');
 
 	let currentCy;
-	let currentLevel = level;
 	let currentKeyword = '';
+	const expandedLevels = [];
 
-	doLongTask(() => {
-		currentCy = drawDiagram(mainDiagram, currentLevel, onDependencySelected);
-	});
+	renderCurrentLevel();
 
-	// Filter function
+	function renderCurrentLevel() {
+		updateNavigation();
+		const baseLevel = buildExpandedLevel(getCodemap(), rootLevelName, expandedLevels, initialLevel);
+		const displayedLevel = filterLevel(baseLevel, getCodemap(), currentKeyword, expandedLevels);
+		if (currentCy) currentCy.destroy();
+		doLongTask(() => {
+			currentCy = drawDiagram(
+				mainDiagram,
+				displayedLevel,
+				onDependencySelected,
+				onComponentSelected
+			);
+		});
+	}
+
+	function updateNavigation() {
+		levelUpButton.disabled = expandedLevels.length === 0;
+		breadcrumb.innerHTML = '';
+
+		const rootCrumb = document.createElement('span');
+		rootCrumb.className = 'breadcrumb-item current';
+		rootCrumb.textContent = rootLevelName || '[root]';
+		breadcrumb.appendChild(rootCrumb);
+
+		if (expandedLevels.length === 0) return;
+
+		const label = document.createElement('span');
+		label.className = 'breadcrumb-separator';
+		label.textContent = '已展开';
+		breadcrumb.appendChild(label);
+
+		for (const expandedLevel of expandedLevels) {
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'breadcrumb-item';
+			button.textContent = relativeLevelName(rootLevelName, expandedLevel);
+			button.addEventListener('click', () => collapseExpandedLevel(expandedLevel));
+			breadcrumb.appendChild(button);
+		}
+	}
+
+	function buildExpandedLevel(codemap, levelName, expandedLevelNames, fallbackLevel) {
+		if (!codemap || !codemap.packages) return fallbackLevel;
+
+		const expandedSet = new Set(expandedLevelNames);
+		const componentSizes = {};
+		const componentMeta = {};
+		const dependencyStrengths = {};
+		const groups = {};
+
+		for (const packet of codemap.packages) {
+			const visibleComponent = visibleComponentForPackage(codemap, packet.fqn, levelName, expandedSet);
+			if (!visibleComponent) continue;
+			componentSizes[visibleComponent.name] = (componentSizes[visibleComponent.name] || 0) + packet.size;
+			componentMeta[visibleComponent.name] = visibleComponent;
+			if (visibleComponent.group) {
+				registerGroupChain(groups, visibleComponent.group, levelName);
+			}
+		}
+
+		const coverageIndex = buildCoverageIndex(componentMeta);
+
+		for (const packageDep of codemap.packageDeps) {
+			const fromComponent = mapPackageToVisibleComponent(packageDep.from.fqn, coverageIndex);
+			const toComponent = mapPackageToVisibleComponent(packageDep.to.fqn, coverageIndex);
+			if (!fromComponent || !toComponent || fromComponent.name === toComponent.name) continue;
+			const dependencyName = fromComponent.name + ' -> ' + toComponent.name;
+			dependencyStrengths[dependencyName] = (dependencyStrengths[dependencyName] || 0) + packageDep.memberDeps.length;
+		}
+
+		if (Object.keys(componentSizes).length === 0) return fallbackLevel;
+
+		const components = {};
+		for (const [name, size] of Object.entries(componentSizes)) {
+			const meta = componentMeta[name];
+			components[name] = {
+				size,
+				label: meta.label,
+				packageName: meta.packageName,
+				isRootMarker: meta.isRootMarker === true
+			};
+			if (meta.group) {
+				components[name].group = meta.group;
+			}
+		}
+
+		const dependencies = {};
+		const maxStrength = Math.max(1, ...Object.values(dependencyStrengths), 1);
+		for (const [name, strength] of Object.entries(dependencyStrengths)) {
+			dependencies[name] = {
+				strength: Math.max(1, Math.round(strength / maxStrength * 8 + 1))
+			};
+		}
+
+		return {
+			level: levelName,
+			groups,
+			components,
+			dependencies
+		};
+	}
+
+	function visibleComponentForPackage(codemap, packageFqn, levelName, expandedSet) {
+		if (packageFqn === levelName) {
+			return {
+				name: '[root]',
+				label: '[root]',
+				packageName: levelName,
+				group: null
+			};
+		}
+
+		const levelPrefix = levelName === '' ? '' : (levelName + '.');
+		if (!packageFqn.startsWith(levelPrefix)) return null;
+
+		const suffix = packageFqn.slice(levelPrefix.length);
+		if (!suffix) {
+			return {
+				name: '[root]',
+				label: '[root]',
+				packageName: levelName,
+				group: null,
+				isRootMarker: false
+			};
+		}
+
+		const segments = suffix.split('.').filter(Boolean);
+		const visibleSegments = [];
+
+		for (const [index, segment] of segments.entries()) {
+			visibleSegments.push(segment);
+			const absoluteLevel = appendLevel(levelName, visibleSegments.join('.'));
+			const hasMoreSegments = index < segments.length - 1;
+			const isExpandedLevel = expandedSet.has(absoluteLevel);
+			const hasChildren = hasChildPackages(codemap, absoluteLevel);
+			const isExpandedParentPackage = isExpandedLevel && hasChildren && !hasMoreSegments;
+			if (isExpandedParentPackage) {
+				return {
+					name: visibleSegments.join('.') + '.[root]',
+					label: '[root]',
+					packageName: absoluteLevel,
+					isRootMarker: true,
+					group: {
+						name: visibleSegments.join('.'),
+						label: lastSegment(visibleSegments.join('.')),
+						packageName: absoluteLevel
+					}
+				};
+			}
+			if (!isExpandedLevel || !hasMoreSegments) {
+				return {
+					name: visibleSegments.join('.'),
+					label: lastSegment(visibleSegments.join('.')),
+					packageName: absoluteLevel,
+					isRootMarker: false,
+					group: visibleSegments.length > 1
+						? {
+							name: visibleSegments.slice(0, -1).join('.'),
+							label: lastSegment(visibleSegments.slice(0, -1).join('.')),
+							packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.'))
+						}
+						: null
+				};
+			}
+		}
+
+		return {
+			name: visibleSegments.join('.'),
+			label: lastSegment(visibleSegments.join('.')),
+			packageName: appendLevel(levelName, visibleSegments.join('.')),
+			isRootMarker: false,
+			group: visibleSegments.length > 1
+				? {
+					name: visibleSegments.slice(0, -1).join('.'),
+					label: lastSegment(visibleSegments.slice(0, -1).join('.')),
+					packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.'))
+				}
+				: null
+		};
+	}
+
 	function filterLevel(originalLevel, codemap, keyword) {
 		if (!keyword || !codemap) return originalLevel;
 
+		const coverageIndex = buildCoverageIndex(originalLevel.components);
 		const matchedPairs = new Set();
-		const levelPrefix = originalLevel.level + '.';
 
-		// Traverse codemap to find packages matching className or memberName
 		for (const pkg of codemap.packageDeps) {
-			for (const cls of pkg.memberDeps) {
+			for (const memberDep of pkg.memberDeps) {
 				if (
-					(cls.from.className && cls.from.className.includes(keyword)) ||
-					(cls.from.memberName && cls.from.memberName.includes(keyword)) ||
-					(cls.to.className && cls.to.className.includes(keyword)) ||
-					(cls.to.memberName && cls.to.memberName.includes(keyword))
+					(memberDep.from.className && memberDep.from.className.includes(keyword)) ||
+					(memberDep.from.memberName && memberDep.from.memberName.includes(keyword)) ||
+					(memberDep.to.className && memberDep.to.className.includes(keyword)) ||
+					(memberDep.to.memberName && memberDep.to.memberName.includes(keyword))
 				) {
-					// Calculate component names
-					let compFrom;
-					if (pkg.from.fqn === originalLevel.level) {
-						compFrom = '[root]';
-					} else if (pkg.from.fqn.startsWith(levelPrefix)) {
-						const afterLevel = pkg.from.fqn.slice(levelPrefix.length);
-						const firstDotIndex = afterLevel.indexOf('.');
-						compFrom = firstDotIndex === -1 ? afterLevel : afterLevel.slice(0, firstDotIndex);
-					}
-
-					let compTo;
-					if (pkg.to.fqn === originalLevel.level) {
-						compTo = '[root]';
-					} else if (pkg.to.fqn.startsWith(levelPrefix)) {
-						const afterLevel = pkg.to.fqn.slice(levelPrefix.length);
-						const firstDotIndex = afterLevel.indexOf('.');
-						compTo = firstDotIndex === -1 ? afterLevel : afterLevel.slice(0, firstDotIndex);
-					}
-
+					const compFrom = mapPackageToVisibleComponent(pkg.from.fqn, coverageIndex);
+					const compTo = mapPackageToVisibleComponent(pkg.to.fqn, coverageIndex);
 					if (compFrom && compTo) {
-						matchedPairs.add(JSON.stringify({from: compFrom, to: compTo}));
+						matchedPairs.add(JSON.stringify({from: compFrom.name, to: compTo.name}));
 					}
-					break; // Break out of inner loop after finding a match
+					break;
 				}
 			}
 		}
 
-		// Collect all involved components
 		const componentSet = new Set();
 		for (const pairStr of matchedPairs) {
 			const pair = JSON.parse(pairStr);
@@ -98,21 +267,26 @@ function socomo() {
 		}
 
 		const filteredComponents = {};
-		// Filter components
-		for (const comp in originalLevel.components) {
-			if (componentSet.has(comp)) {
-				filteredComponents[comp] = originalLevel.components[comp];
+		for (const componentName in originalLevel.components) {
+			if (componentSet.has(componentName)) {
+				filteredComponents[componentName] = originalLevel.components[componentName];
+			}
+		}
+
+		const filteredGroups = {};
+		for (const component of Object.values(filteredComponents)) {
+			if (component.group) {
+				registerGroupChain(filteredGroups, component.group, originalLevel.level);
 			}
 		}
 
 		const filteredDependencies = {};
-		// Filter dependencies, must match the same pair of from and to
-		for (const dep in originalLevel.dependencies) {
-			const [from, to] = dep.split(' -> ');
+		for (const dependencyName in originalLevel.dependencies) {
+			const [from, to] = dependencyName.split(' -> ');
 			for (const pairStr of matchedPairs) {
 				const pair = JSON.parse(pairStr);
 				if (pair.from === from && pair.to === to) {
-					filteredDependencies[dep] = originalLevel.dependencies[dep];
+					filteredDependencies[dependencyName] = originalLevel.dependencies[dependencyName];
 					break;
 				}
 			}
@@ -120,27 +294,36 @@ function socomo() {
 
 		return {
 			level: originalLevel.level,
+			groups: filteredGroups,
 			components: filteredComponents,
 			dependencies: filteredDependencies
 		};
 	}
 
-	// Search functionality
-	const searchInput = document.getElementById('search-input');
-	const searchButton = document.getElementById('search-button');
-
 	function performSearch() {
-		const keyword = searchInput.value.trim();
-		currentKeyword = keyword;
-		currentLevel = filterLevel(level, getCodemap(), keyword);
-		if (currentCy) currentCy.destroy();
-		currentCy = drawDiagram(mainDiagram, currentLevel, onDependencySelected);
+		currentKeyword = searchInput.value.trim();
+		renderCurrentLevel();
 	}
 
 	searchButton.addEventListener('click', performSearch);
-	searchInput.addEventListener('keypress', (e) => {
-		if (e.key === 'Enter') performSearch();
+	searchInput.addEventListener('keypress', event => {
+		if (event.key === 'Enter') performSearch();
 	});
+
+	levelUpButton.addEventListener('click', () => {
+		if (expandedLevels.length === 0) return;
+		collapseExpandedLevel(expandedLevels[expandedLevels.length - 1]);
+	});
+
+	function collapseExpandedLevel(levelName) {
+		const levelPrefix = levelName + '.';
+		for (let i = expandedLevels.length - 1; i >= 0; i--) {
+			if (expandedLevels[i] === levelName || expandedLevels[i].startsWith(levelPrefix)) {
+				expandedLevels.splice(i, 1);
+			}
+		}
+		renderCurrentLevel();
+	}
 
 	function onDependencySelected(fromComponent, toComponent) {
 		if (hasCodemap()) {
@@ -150,6 +333,95 @@ function socomo() {
 		} else {
 			console.warn('socomo.data not yet loaded or completely missing');
 		}
+	}
+
+	function onComponentSelected(packageName, isRootMarker) {
+		if (!hasCodemap()) {
+			console.warn('socomo.data not yet loaded or completely missing');
+			return;
+		}
+		if (isRootMarker) return;
+		if (!packageName || packageName === rootLevelName) return;
+
+		const absoluteLevel = packageName;
+		if (!hasChildPackages(getCodemap(), absoluteLevel)) return;
+
+		const existingIndex = expandedLevels.indexOf(absoluteLevel);
+		if (existingIndex !== -1) {
+			collapseExpandedLevel(absoluteLevel);
+			return;
+		}
+
+		expandedLevels.push(absoluteLevel);
+		renderCurrentLevel();
+	}
+
+	function hasChildPackages(codemap, levelName) {
+		if (!codemap || !codemap.packages) return false;
+		const prefix = levelName === '' ? '' : (levelName + '.');
+		return codemap.packages.some(packet =>
+			packet.fqn !== levelName
+			&& packet.fqn.startsWith(prefix)
+		);
+	}
+
+	function appendLevel(levelName, suffix) {
+		if (!suffix) return levelName;
+		if (!levelName) return suffix;
+		return levelName + '.' + suffix;
+	}
+
+	function relativeLevelName(rootLevel, absoluteLevel) {
+		if (rootLevel === absoluteLevel) return '[root]';
+		const prefix = rootLevel === '' ? '' : (rootLevel + '.');
+		return absoluteLevel.startsWith(prefix)
+			? absoluteLevel.slice(prefix.length)
+			: absoluteLevel;
+	}
+
+	function lastSegment(levelName) {
+		if (!levelName) return '[root]';
+		const segments = levelName.split('.').filter(Boolean);
+		return segments[segments.length - 1] || '[root]';
+	}
+
+	function registerGroupChain(groups, group, levelName) {
+		if (!group) return;
+		const segments = group.name.split('.').filter(Boolean);
+		for (let i = 0; i < segments.length; i++) {
+			const groupName = segments.slice(0, i + 1).join('.');
+			if (groups[groupName]) continue;
+			const packageName = appendLevel(levelName, groupName);
+			groups[groupName] = {
+				name: groupName,
+				label: lastSegment(groupName),
+				packageName,
+				parentGroupName: i > 0 ? segments.slice(0, i).join('.') : null
+			};
+		}
+	}
+
+	function buildCoverageIndex(components) {
+		return Object.entries(components).map(([name, props]) => ({
+			name,
+			packageName: props.packageName,
+			exactOnly: props.isRootMarker === true
+		})).sort((left, right) => right.packageName.length - left.packageName.length);
+	}
+
+	function mapPackageToVisibleComponent(packageFqn, coverageIndex) {
+		for (const coverage of coverageIndex) {
+			if (coverage.exactOnly) {
+				if (packageFqn === coverage.packageName) {
+					return coverage;
+				}
+				continue;
+			}
+			if (packageFqn === coverage.packageName || packageFqn.startsWith(coverage.packageName + '.')) {
+				return coverage;
+			}
+		}
+		return null;
 	}
 
 	Mousetrap.bind('esc', () => {

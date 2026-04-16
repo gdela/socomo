@@ -76,6 +76,7 @@ public class CodePackage implements Comparable<CodePackage> {
 	 * meaning, so can be used only to relatively compare sizes of two packages, and
 	 * this comparision should match an average opinion of a human developer.
 	 */
+	@JsonProperty
 	public int size() {
 		Set<String> classes = new HashSet<>();
 		for (CodeMember member : members.values()) {

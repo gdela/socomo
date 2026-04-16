@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -52,14 +54,25 @@ public class SocomoFacade {
 	 * @param input {@code *.jar} file or directory with {@code *.class} files
 	 */
 	public void analyzeBytecode(File input) {
+		analyzeBytecode(Collections.singletonList(input));
+	}
+
+	/**
+	 * Analyzes bytecode found in given inputs.
+	 * @see BytecodeAnalyzer
+	 * @param inputs {@code *.jar} files or directories with {@code *.class} files
+	 */
+	public void analyzeBytecode(Collection<File> inputs) {
 		CodemappingCollector collector = new CodemappingCollector();
 		BytecodeAnalyzer analyzer = new BytecodeAnalyzer(collector);
-		if (input.isFile()) {
-			analyzer.analyzeJar(shorten(input));
-		} else if (input.isDirectory()) {
-			analyzer.analyzeDir(shorten(input));
-		} else {
-			throw new IllegalArgumentException(input + " is neither jar not dir");
+		for (File input : inputs) {
+			if (input.isFile()) {
+				analyzer.analyzeJar(shorten(input));
+			} else if (input.isDirectory()) {
+				analyzer.analyzeDir(shorten(input));
+			} else {
+				throw new IllegalArgumentException(input + " is neither jar not dir");
+			}
 		}
 		codemap = collector.getCodemap().select(nonSelfDepsAndFrom(MAIN));
 		log.trace("codemap:\n{}", codemap.formatted());

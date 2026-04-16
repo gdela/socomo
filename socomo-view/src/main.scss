@@ -16,13 +16,60 @@ body {
 	background: #a3c7c1;
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	align-items: flex-start;
 	padding: 10px;
+}
+
+#title-container {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+#level-navigation {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	min-height: 32px;
+}
+
+#level-up-button,
+.breadcrumb-item {
+	border: 0;
+	background: rgba(255, 255, 255, 0.18);
+	color: #ffffff;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+#level-up-button:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+#breadcrumb {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.breadcrumb-item.current {
+	background: rgba(255, 255, 255, 0.28);
+	cursor: default;
+}
+
+.breadcrumb-separator {
+	opacity: 0.8;
 }
 
 #search-container {
 	display: flex;
 	gap: 10px;
+	padding-top: 6px;
 }
 
 #search-input {

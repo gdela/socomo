@@ -2,7 +2,9 @@ package pl.gdela.socomo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +35,10 @@ class SocomoMain implements Callable<Void> {
 
 	@Parameters(
 			paramLabel = "INPUT",
-			index = "0", arity = "1",
-			description = "*.jar file or directory with *.class files to be analyzed."
+			index = "0..*", arity = "1..*",
+			description = "One or more *.jar files or directories with *.class files to be analyzed together."
 	)
-	private File input;
+	private List<File> inputs;
 
 	@Option(
 			names = { "-o", "--output" },
@@ -95,17 +97,19 @@ class SocomoMain implements Callable<Void> {
 			CommandLine.usage(this, err);
 			exit(1);
 		}
-		if (!input.canRead()) {
-			err.println("Invalid input file/directory: " + input);
-			err.println("Please specify an existing, readable file or directory for input.");
-			CommandLine.usage(this, err);
-			exit(1);
+		for (File input : inputs) {
+			if (!input.canRead()) {
+				err.println("Invalid input file/directory: " + input);
+				err.println("Please specify existing, readable files or directories for input.");
+				CommandLine.usage(this, err);
+				exit(1);
+			}
 		}
 
 		File outputHtmlFile = new File(outputHtmlDir.getCanonicalFile(), "socomo.html");
 		File outputDataFile = new File(outputDataDir.getCanonicalFile(), "socomo.data");
-		SocomoFacade socomo = new SocomoFacade(input.toString().replace('\\', '/'));
-		socomo.analyzeBytecode(input);
+		SocomoFacade socomo = new SocomoFacade(moduleName(inputs));
+		socomo.analyzeBytecode(inputs);
 		if (level != null) {
 			socomo.chooseLevel(level);
 		} else {
@@ -116,6 +120,13 @@ class SocomoMain implements Callable<Void> {
 			socomo.display();
 		}
 		return null;
+	}
+
+	private static String moduleName(List<File> inputs) {
+		return inputs.stream()
+			.map(File::getName)
+			.map(name -> name.replace('\\', '/'))
+			.collect(Collectors.joining(" + "));
 	}
 
 	static class ManifestVersionProvider implements IVersionProvider {
