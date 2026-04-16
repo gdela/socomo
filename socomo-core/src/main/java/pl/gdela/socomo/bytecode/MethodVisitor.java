@@ -12,6 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.gdela.socomo.codemap.DepType;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.objectweb.asm.Type.getMethodType;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
@@ -31,6 +36,9 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	private final DependencyCollectorAdapter collector;
 
 	private int instructionCount = 1;
+	private final Map<Label, Integer> labelPositions = new HashMap<>();
+	private final List<JumpEdge> jumpEdges = new ArrayList<>();
+	private final List<PendingCall> pendingCalls = new ArrayList<>();
 
 	MethodVisitor(DependencyCollectorAdapter collector) {
 		super(Opcodes.ASM9);
@@ -39,6 +47,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitEnd() {
+		flushPendingCalls();
 		// to exit member entered in ClassVisitor.visitMethod()
 		collector.exitMember(instructionCount);
 	}
@@ -138,7 +147,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 		instructionCount++;
-		collector.markDependency(CALLS, getObjectType(owner), name + "()");
+		pendingCalls.add(new PendingCall(CALLS, instructionCount, getObjectType(owner), name + "()"));
 	}
 
 	@Override
@@ -201,13 +210,13 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 
 	@Override
 	public void visitLabel(Label label) {
-		// not interesting
+		labelPositions.put(label, instructionCount);
 	}
 
 	@Override
 	public void visitJumpInsn(int opcode, Label label) {
 		instructionCount++;
-		// not interesting
+		jumpEdges.add(new JumpEdge(instructionCount, label));
 	}
 
 	@Override
@@ -219,13 +228,19 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	@Override
 	public void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels) {
 		instructionCount++;
-		// not interesting
+		jumpEdges.add(new JumpEdge(instructionCount, dflt));
+		for (Label label : labels) {
+			jumpEdges.add(new JumpEdge(instructionCount, label));
+		}
 	}
 
 	@Override
 	public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
 		instructionCount++;
-		// not interesting
+		jumpEdges.add(new JumpEdge(instructionCount, dflt));
+		for (Label label : labels) {
+			jumpEdges.add(new JumpEdge(instructionCount, label));
+		}
 	}
 
 	@Override
@@ -234,7 +249,7 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 		Type bootstrapMethodType = getMethodType(desc); // the method that returns instance of FunctionInterface (lambda)
 		Type lambdaInterface = bootstrapMethodType.getReturnType();
 		String lambdaInterfaceMethod = name + "()";
-		collector.markDependency(CALLS_DYNAMIC, lambdaInterface, lambdaInterfaceMethod);
+		pendingCalls.add(new PendingCall(CALLS_DYNAMIC, instructionCount, lambdaInterface, lambdaInterfaceMethod));
 	}
 
 	@Override
@@ -264,5 +279,76 @@ class MethodVisitor extends org.objectweb.asm.MethodVisitor {
 	@Override
 	public void visitAttribute(Attribute attribute) {
 		log.warn("ignoring non-standard attribute {} of class {}", attribute.type, attribute.getClass());
+	}
+
+	private void flushPendingCalls() {
+		List<LoopRange> loopRanges = detectLoopRanges();
+		for (PendingCall pendingCall : pendingCalls) {
+			collector.markDependency(
+				pendingCall.type,
+				pendingCall.targetClass,
+				pendingCall.targetMemberName,
+				isInsideLoop(pendingCall.position, loopRanges)
+			);
+		}
+	}
+
+	private List<LoopRange> detectLoopRanges() {
+		List<LoopRange> loopRanges = new ArrayList<>();
+		for (JumpEdge jumpEdge : jumpEdges) {
+			Integer targetPosition = labelPositions.get(jumpEdge.target);
+			if (targetPosition == null) continue;
+			if (targetPosition < jumpEdge.fromPosition) {
+				loopRanges.add(new LoopRange(targetPosition, jumpEdge.fromPosition));
+			}
+		}
+		return loopRanges;
+	}
+
+	private static boolean isInsideLoop(int position, List<LoopRange> loopRanges) {
+		for (LoopRange loopRange : loopRanges) {
+			if (loopRange.contains(position)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static final class JumpEdge {
+		private final int fromPosition;
+		private final Label target;
+
+		private JumpEdge(int fromPosition, Label target) {
+			this.fromPosition = fromPosition;
+			this.target = target;
+		}
+	}
+
+	private static final class LoopRange {
+		private final int start;
+		private final int end;
+
+		private LoopRange(int start, int end) {
+			this.start = start;
+			this.end = end;
+		}
+
+		private boolean contains(int position) {
+			return position >= start && position <= end;
+		}
+	}
+
+	private static final class PendingCall {
+		private final DepType type;
+		private final int position;
+		private final Type targetClass;
+		private final String targetMemberName;
+
+		private PendingCall(DepType type, int position, Type targetClass, String targetMemberName) {
+			this.type = type;
+			this.position = position;
+			this.targetClass = targetClass;
+			this.targetMemberName = targetMemberName;
+		}
 	}
 }

@@ -34,6 +34,9 @@ public class CodePackage implements Comparable<CodePackage> {
 	@JsonProperty
 	public final String fqn;
 
+	@JsonProperty
+	public String sourceName;
+
 	private final Map<String, CodeMember> members = new TreeMap<>();
 
 	CodePackage(String fqn) {
@@ -42,6 +45,12 @@ public class CodePackage implements Comparable<CodePackage> {
 
 	public Collection<CodeMember> members() {
 		return members.values();
+	}
+
+	void markSourceName(String sourceName) {
+		if (this.sourceName == null) {
+			this.sourceName = sourceName;
+		}
 	}
 
 	/**

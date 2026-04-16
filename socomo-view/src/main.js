@@ -129,11 +129,15 @@ function socomo() {
 		const components = {};
 		for (const [name, size] of Object.entries(componentSizes)) {
 			const meta = componentMeta[name];
+			const isTopLevelComponent = !meta.group;
 			components[name] = {
 				size,
-				label: meta.label,
+				label: isTopLevelComponent && meta.sourceName
+					? `${meta.sourceName} / ${meta.packageName || meta.label}`
+					: meta.label,
 				packageName: meta.packageName,
-				isRootMarker: meta.isRootMarker === true
+				isRootMarker: meta.isRootMarker === true,
+				sourceName: meta.sourceName || null
 			};
 			if (meta.group) {
 				components[name].group = meta.group;
@@ -157,12 +161,16 @@ function socomo() {
 	}
 
 	function visibleComponentForPackage(codemap, packageFqn, levelName, expandedSet) {
+		const packet = codemap.packages.find(candidate => candidate.fqn === packageFqn);
+		const sourceName = packet ? packet.sourceName : null;
+
 		if (packageFqn === levelName) {
 			return {
 				name: '[root]',
 				label: '[root]',
 				packageName: levelName,
-				group: null
+				group: null,
+				sourceName
 			};
 		}
 
@@ -176,7 +184,8 @@ function socomo() {
 				label: '[root]',
 				packageName: levelName,
 				group: null,
-				isRootMarker: false
+				isRootMarker: false,
+				sourceName
 			};
 		}
 
@@ -196,10 +205,12 @@ function socomo() {
 					label: '[root]',
 					packageName: absoluteLevel,
 					isRootMarker: true,
+					sourceName,
 					group: {
 						name: visibleSegments.join('.'),
 						label: lastSegment(visibleSegments.join('.')),
-						packageName: absoluteLevel
+						packageName: absoluteLevel,
+						sourceName
 					}
 				};
 			}
@@ -209,11 +220,13 @@ function socomo() {
 					label: lastSegment(visibleSegments.join('.')),
 					packageName: absoluteLevel,
 					isRootMarker: false,
+					sourceName,
 					group: visibleSegments.length > 1
 						? {
 							name: visibleSegments.slice(0, -1).join('.'),
 							label: lastSegment(visibleSegments.slice(0, -1).join('.')),
-							packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.'))
+							packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.')),
+							sourceName
 						}
 						: null
 				};
@@ -225,11 +238,13 @@ function socomo() {
 			label: lastSegment(visibleSegments.join('.')),
 			packageName: appendLevel(levelName, visibleSegments.join('.')),
 			isRootMarker: false,
+			sourceName,
 			group: visibleSegments.length > 1
 				? {
 					name: visibleSegments.slice(0, -1).join('.'),
 					label: lastSegment(visibleSegments.slice(0, -1).join('.')),
-					packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.'))
+					packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.')),
+					sourceName
 				}
 				: null
 		};
@@ -392,11 +407,15 @@ function socomo() {
 			const groupName = segments.slice(0, i + 1).join('.');
 			if (groups[groupName]) continue;
 			const packageName = appendLevel(levelName, groupName);
+			const isOutermostGroup = i === 0;
 			groups[groupName] = {
 				name: groupName,
-				label: lastSegment(groupName),
+				label: isOutermostGroup && group.sourceName
+					? `${group.sourceName} / ${packageName}`
+					: lastSegment(groupName),
 				packageName,
-				parentGroupName: i > 0 ? segments.slice(0, i).join('.') : null
+				parentGroupName: i > 0 ? segments.slice(0, i).join('.') : null,
+				sourceName: group.sourceName || null
 			};
 		}
 	}

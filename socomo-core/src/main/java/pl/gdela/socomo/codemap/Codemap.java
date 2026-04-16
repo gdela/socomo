@@ -82,7 +82,9 @@ public class Codemap {
 		for (CodePackage packet : this.packages()) {
 			for (CodeMember member : packet.members()) {
 				if (selector.shouldSelect(member)) {
-					CodeMember selectedMember = selected.packet(packet.fqn).member(member.className, member.memberName);
+					CodePackage selectedPackage = selected.packet(packet.fqn);
+					selectedPackage.markSourceName(packet.sourceName);
+					CodeMember selectedMember = selectedPackage.member(member.className, member.memberName);
 					selectedMember.size = member.size;
 					selectedMember.origin = member.origin;
 				}
@@ -93,6 +95,7 @@ public class Codemap {
 				if (selector.shouldSelect(memberDep)) {
 					MemberDep selectedMemberDep = selected.packageDep(packageDep.from, packageDep.to).memberDep(memberDep.from, memberDep.to);
 					selectedMemberDep.type = memberDep.type;
+					selectedMemberDep.inLoop = memberDep.inLoop;
 				}
 			}
 		}

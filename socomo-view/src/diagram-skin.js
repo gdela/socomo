@@ -52,8 +52,8 @@ const diagramStyle = cytoscape.stylesheet()
 	.css({
 		'content': 'data(label)',
 		'shape': 'rectangle',
-		'height': '25px',
-		'width': '90px',
+		'height': '32px',
+		'width': '150px',
 		'padding': 0,
 		'color': '#000',
 		'background-color': '#ede9ed',
@@ -62,13 +62,16 @@ const diagramStyle = cytoscape.stylesheet()
 		'border-style': 'solid',
 		'text-valign': 'center',
 		'text-halign': 'center',
+		'text-wrap': 'wrap',
+		'text-max-width': '132px',
 		'font-family': 'Lato, Verdana, Geneva, sans-serif',
 		'font-size': '10px',
 	})
 	.selector('node.on-big-diagram')
 	.css({
-		'height': '30px',
-		'width': '100px',
+		'height': '38px',
+		'width': '170px',
+		'text-max-width': '150px',
 		'font-size': '14px'
 	})
 	.selector('node:parent')
@@ -76,10 +79,12 @@ const diagramStyle = cytoscape.stylesheet()
 		'content': 'data(label)',
 		'text-valign': 'top',
 		'text-halign': 'center',
+		'text-wrap': 'wrap',
+		'text-max-width': '240px',
 		'background-color': '#f6f3ea',
 		'border-color': '#cdbf9f',
 		'border-width': '1px',
-		'padding-top': '30px',
+		'padding-top': '36px',
 		'padding-left': '20px',
 		'padding-right': '20px',
 		'padding-bottom': '20px',
@@ -87,6 +92,7 @@ const diagramStyle = cytoscape.stylesheet()
 	})
 	.selector('node:parent.on-big-diagram')
 	.css({
+		'text-max-width': '280px',
 		'font-size': '14px'
 	})
 	.selector('edge')

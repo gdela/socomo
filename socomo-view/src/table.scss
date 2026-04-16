@@ -59,6 +59,17 @@ table > tbody > {
 	text-decoration: underline;
 }
 
+.loop-badge {
+	display: inline-block;
+	padding: 1px 6px;
+	border-radius: 999px;
+	background: #c73d2f;
+	color: #ffffff;
+	font-size: 10px;
+	line-height: 1.4;
+	vertical-align: middle;
+}
+
 #call-trace-panel {
 	border-top: 1px solid #d0e0ec;
 	padding: 12px 14px;

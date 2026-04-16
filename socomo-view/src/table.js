@@ -73,7 +73,7 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 					memberName: memberDep.from.memberName,
 					label: fromMemberName(memberDep)
 				});
-				row.insertCell().innerHTML = '&rightarrow;';
+				appendArrowCell(row.insertCell(), memberDep);
 				appendMemberCell(row.insertCell(), {
 					packageFqn: packageDep.to.fqn,
 					className: memberDep.to.className,
@@ -135,6 +135,17 @@ function appendTraceLink(cell, label, packageFqn, className, memberName) {
 	}
 	button.textContent = label;
 	cell.appendChild(button);
+}
+
+function appendArrowCell(cell, memberDep) {
+	cell.innerHTML = '&rightarrow;';
+	if (!memberDep.inLoop) return;
+	const badge = document.createElement('span');
+	badge.className = 'loop-badge';
+	badge.textContent = '循环';
+	badge.title = '该调用位于循环体内';
+	cell.appendChild(document.createTextNode(' '));
+	cell.appendChild(badge);
 }
 
 function buildReverseCallGraph(codemap) {

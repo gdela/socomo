@@ -24,6 +24,10 @@ class DependencyCollectorAdapter {
 	}
 
 	void markDependency(DepType type, Type targetClass, String targetMemberName) {
+		markDependency(type, targetClass, targetMemberName, false);
+	}
+
+	void markDependency(DepType type, Type targetClass, String targetMemberName, boolean inLoop) {
 
 		// java built-ins on arrays, like .clone() or .length, are not interesting
 		if (isArray(targetClass) && targetMemberName != null) return;
@@ -35,7 +39,7 @@ class DependencyCollectorAdapter {
 		if (isPrimitive(flatTargetClass)) return;
 
 		// the rest is what we're interested about
-		adaptee.markDependency(type, flatTargetClass.getClassName(), targetMemberName);
+		adaptee.markDependency(type, flatTargetClass.getClassName(), targetMemberName, inLoop);
 	}
 
 	void markDependency(DepType type, Type targetClass) {

@@ -12,7 +12,6 @@ export default drawDiagram;
 const TOP_LEVEL_GAP = 36;
 
 function drawDiagram(diagramContainer, level, dependencySelectedHandler, componentSelectedHandler) {
-
 	const groups = Object.entries(level.groups || {}).map(([groupName, props]) => {
 		return {
 			data: {
@@ -135,7 +134,6 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 		);
 	});
 
-	// drill down into child level on node click
 	cy.on('tap', 'node', event => {
 		if (!componentSelectedHandler) return;
 		if (event.target.isParent() && !clickedGroupHeader(event)) return;

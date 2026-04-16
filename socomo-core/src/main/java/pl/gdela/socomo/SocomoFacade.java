@@ -66,6 +66,7 @@ public class SocomoFacade {
 		CodemappingCollector collector = new CodemappingCollector();
 		BytecodeAnalyzer analyzer = new BytecodeAnalyzer(collector);
 		for (File input : inputs) {
+			collector.enterSource(input.getName());
 			if (input.isFile()) {
 				analyzer.analyzeJar(shorten(input));
 			} else if (input.isDirectory()) {
