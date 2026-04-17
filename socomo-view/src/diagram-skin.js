@@ -36,9 +36,10 @@ const diagramZooming = event => {
 	const cy = event.cy;
 	const fitAll = () => cy.fit(cy.nodes(), diagramLayout.padding);
 	cy.minZoom(0.1); fitAll(); // to measure zoom needed to fit everything
-	const bigDiagram = cy.zoom() < 0.9;
+	const fittedZoom = cy.zoom();
+	const bigDiagram = fittedZoom < 0.9;
 	cy.maxZoom(bigDiagram ? 1.1 : 1.5);
-	cy.minZoom(Math.min(1.0, cy.zoom() - 0.1));
+	cy.minZoom(0.02);
 	cy.nodes().toggleClass('on-big-diagram', bigDiagram);
 	cy.edges().toggleClass('on-big-diagram', bigDiagram);
 	fitAll(); // to bring back zoom to allowed min-max range

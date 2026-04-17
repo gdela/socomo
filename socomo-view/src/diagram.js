@@ -12,35 +12,7 @@ export default drawDiagram;
 const TOP_LEVEL_GAP = 36;
 
 function drawDiagram(diagramContainer, level, dependencySelectedHandler, componentSelectedHandler) {
-	const groups = Object.entries(level.groups || {}).map(([groupName, props]) => {
-		return {
-			data: {
-				id: 'group:' + groupName,
-				label: props.label,
-				packageName: props.packageName,
-				isGroup: true,
-				parent: props.parentGroupName ? ('group:' + props.parentGroupName) : undefined
-			}
-		};
-	});
-
-	const nodes = Object.entries(level.components).map(([componentName, props]) => {
-		return {
-			data: {
-				id: componentName,
-				label: props.label || componentName,
-				size: props.size,
-				packageName: props.packageName,
-				isRootMarker: props.isRootMarker === true,
-				parent: props.group ? ('group:' + props.group.name) : undefined
-			}
-		}; // cytoscape node format
-	});
-
-	const edges = Object.entries(level.dependencies).map(([dependencyName, props]) => {
-		const [from, to] = dependencyName.split(' -> ');
-		return {data: {source: from, target: to, strength: props.strength}}; // cytoscape edge format
-	});
+	let currentLevel = level;
 
 	let cy;
 
@@ -52,7 +24,7 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 		boxSelectionEnabled: true,
 		selectionType: 'additive',
 		wheelSensitivity: 0.1,
-		elements: {nodes: [...groups, ...nodes], edges}
+		elements: buildElements(currentLevel)
 	});
 	cy.ready(event => {
 		resolveTopLevelSpacing(event.cy);
@@ -127,7 +99,7 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 	// invoke dependency selected handler on edge click
 	cy.on('tap', 'edge', event => {
 		const edge = event.target;
-		const prefix = level.level !== '' ? (level.level + '.') : '';
+		const prefix = currentLevel.level !== '' ? (currentLevel.level + '.') : '';
 		dependencySelectedHandler(
 			prefix + edge.source().id(),
 			prefix + edge.target().id()
@@ -175,6 +147,135 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 		// the delay is to give browser a chance to render dom changes done so far
 		setTimeout(() => { task(); diagramContainer.style.cursor = ''; }, 30);
 	}
+
+	function updateLevel(nextLevel) {
+		currentLevel = nextLevel;
+		const previousPositions = new Map();
+		cy.nodes().forEach(node => {
+			previousPositions.set(node.id(), {...node.position()});
+		});
+		const previousPan = cy.pan();
+		const previousZoom = cy.zoom();
+
+		const targetElements = buildElements(nextLevel);
+		const targetById = new Map(targetElements.nodes.map(node => [node.data.id, node]));
+
+		cy.batch(() => {
+			cy.edges().remove();
+
+			cy.nodes().forEach(node => {
+				if (!targetById.has(node.id())) {
+					node.remove();
+				}
+			});
+
+			for (const element of targetElements.nodes) {
+				const existing = cy.getElementById(element.data.id);
+				if (existing.nonempty()) {
+					existing.data('label', element.data.label);
+					existing.data('packageName', element.data.packageName);
+					existing.data('isGroup', element.data.isGroup === true);
+					existing.data('isRootMarker', element.data.isRootMarker === true);
+					moveNode(existing, element.data.parent);
+					continue;
+				}
+
+				const added = cy.add(element);
+				const initialPosition = initialNodePosition(element.data, cy, previousPositions);
+				if (initialPosition) {
+					added.position(initialPosition);
+				}
+			}
+
+			for (const element of targetElements.edges) {
+				cy.add(element);
+			}
+		});
+
+		const layout = cy.layout({
+			...diagramLayout,
+			animate: true,
+			animationDuration: 420,
+			animationEasing: 'ease-in-out-cubic',
+			fit: false
+		});
+		layout.on('layoutstop', () => {
+			resolveTopLevelSpacing(cy);
+			cy.zoom(previousZoom);
+			cy.pan(previousPan);
+		});
+		layout.run();
+	}
+
+	return {
+		cy,
+		updateLevel,
+		destroy: () => cy.destroy()
+	};
+}
+
+function buildElements(level) {
+	const groups = Object.entries(level.groups || {}).map(([groupName, props]) => ({
+		data: {
+			id: 'group:' + groupName,
+			label: props.label,
+			packageName: props.packageName,
+			isGroup: true,
+			parent: props.parentGroupName ? ('group:' + props.parentGroupName) : undefined
+		}
+	}));
+
+	const nodes = Object.entries(level.components).map(([componentName, props]) => ({
+		data: {
+			id: componentName,
+			label: props.label || componentName,
+			size: props.size,
+			packageName: props.packageName,
+			isRootMarker: props.isRootMarker === true,
+			parent: props.group ? ('group:' + props.group.name) : undefined
+		}
+	}));
+
+	const edges = Object.entries(level.dependencies).map(([dependencyName, props]) => {
+		const [from, to] = dependencyName.split(' -> ');
+		return {
+			data: {
+				id: 'edge:' + from + '->' + to,
+				source: from,
+				target: to,
+				strength: props.strength
+			}
+		};
+	});
+
+	return {nodes: [...groups, ...nodes], edges};
+}
+
+function moveNode(node, targetParentId) {
+	const currentParent = node.parent().nonempty() ? node.parent().id() : undefined;
+	if (currentParent === targetParentId) return;
+	node.move({parent: targetParentId});
+}
+
+function initialNodePosition(data, cy, previousPositions) {
+	if (previousPositions.has(data.id)) {
+		return previousPositions.get(data.id);
+	}
+
+	const parentId = data.parent;
+	if (parentId) {
+		const parent = cy.getElementById(parentId);
+		if (parent.nonempty()) {
+			const position = parent.position();
+			const siblingCount = parent.children().length;
+			return {
+				x: position.x + Math.min(40, siblingCount * 8),
+				y: position.y + 36 + Math.min(30, siblingCount * 6)
+			};
+		}
+	}
+
+	return null;
 }
 
 

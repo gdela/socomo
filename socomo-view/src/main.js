@@ -48,7 +48,7 @@ function socomo() {
 	const levelUpButton = document.getElementById('level-up-button');
 	const breadcrumb = document.getElementById('breadcrumb');
 
-	let currentCy;
+	let currentDiagram;
 	let currentKeyword = '';
 	const expandedLevels = [];
 
@@ -58,9 +58,12 @@ function socomo() {
 		updateNavigation();
 		const baseLevel = buildExpandedLevel(getCodemap(), rootLevelName, expandedLevels, initialLevel);
 		const displayedLevel = filterLevel(baseLevel, getCodemap(), currentKeyword, expandedLevels);
-		if (currentCy) currentCy.destroy();
 		doLongTask(() => {
-			currentCy = drawDiagram(
+			if (currentDiagram) {
+				currentDiagram.updateLevel(displayedLevel);
+				return;
+			}
+			currentDiagram = drawDiagram(
 				mainDiagram,
 				displayedLevel,
 				onDependencySelected,
