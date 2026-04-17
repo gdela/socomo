@@ -113,6 +113,9 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 			event.target.data('packageName'),
 			event.target.data('isRootMarker') === true
 		);
+		if (event.target.isParent()) {
+			event.target.unselect();
+		}
 	});
 
 	// rearranging nodes according to standard diagram layout
@@ -176,6 +179,8 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 					existing.data('packageName', element.data.packageName);
 					existing.data('isGroup', element.data.isGroup === true);
 					existing.data('isRootMarker', element.data.isRootMarker === true);
+					existing.data('isLeaf', element.data.isLeaf === true);
+					existing.classes(element.classes || '');
 					moveNode(existing, element.data.parent);
 					continue;
 				}
@@ -226,12 +231,14 @@ function buildElements(level) {
 	}));
 
 	const nodes = Object.entries(level.components).map(([componentName, props]) => ({
+		classes: props.isLeaf === true ? 'leaf-node' : '',
 		data: {
 			id: componentName,
 			label: props.label || componentName,
 			size: props.size,
 			packageName: props.packageName,
 			isRootMarker: props.isRootMarker === true,
+			isLeaf: props.isLeaf === true,
 			parent: props.group ? ('group:' + props.group.name) : undefined
 		}
 	}));

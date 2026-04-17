@@ -133,14 +133,17 @@ function socomo() {
 		for (const [name, size] of Object.entries(componentSizes)) {
 			const meta = componentMeta[name];
 			const isTopLevelComponent = !meta.group;
+			const isLeaf = meta.isRootMarker !== true && !hasChildPackages(codemap, meta.packageName);
+			const baseLabel = isTopLevelComponent && meta.sourceName
+				? `${meta.sourceName} / ${meta.packageName || meta.label}`
+				: meta.label;
 			components[name] = {
 				size,
-				label: isTopLevelComponent && meta.sourceName
-					? `${meta.sourceName} / ${meta.packageName || meta.label}`
-					: meta.label,
+				label: isLeaf ? underlineLabel(baseLabel) : baseLabel,
 				packageName: meta.packageName,
 				isRootMarker: meta.isRootMarker === true,
-				sourceName: meta.sourceName || null
+				sourceName: meta.sourceName || null,
+				isLeaf
 			};
 			if (meta.group) {
 				components[name].group = meta.group;
@@ -401,6 +404,12 @@ function socomo() {
 		if (!levelName) return '[root]';
 		const segments = levelName.split('.').filter(Boolean);
 		return segments[segments.length - 1] || '[root]';
+	}
+
+	function underlineLabel(label) {
+		return Array.from(label).map(character =>
+			character === ' ' ? character : character + '\u0332'
+		).join('');
 	}
 
 	function registerGroupChain(groups, group, levelName) {

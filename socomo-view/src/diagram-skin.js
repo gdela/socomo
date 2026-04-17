@@ -157,6 +157,11 @@ const diagramStyle = cytoscape.stylesheet()
 		'background-color': '#C8ACF6',
 		'border-color': '#C8ACF6',
 	})
+	.selector('node:parent:selected')
+	.css({
+		'background-color': '#f6f3ea',
+		'border-color': '#cdbf9f'
+	})
 	.selector('edge.between-selected')
 	.css({
 		'width': 'mapData(strength, 1, 9, 0.99, 4.35)',

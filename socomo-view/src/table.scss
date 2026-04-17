@@ -1,6 +1,23 @@
 #table-wrapper {
+	display: flex;
+	flex-direction: column;
 	border: 5px solid #d0e0ec;
 	background: #fafafa;
+	max-height: 100%;
+	max-width: 100%;
+	min-height: 0;
+}
+
+#table-pane {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: auto;
+}
+
+#table-splitter {
+	flex: 0 0 10px;
+	cursor: ns-resize;
+	background: linear-gradient(to bottom, transparent 0, transparent 3px, #d0e0ec 3px, #d0e0ec 7px, transparent 7px, transparent 10px);
 }
 
 table {
@@ -71,10 +88,18 @@ table > tbody > {
 }
 
 #call-trace-panel {
+	flex: 0 0 auto;
 	border-top: 1px solid #d0e0ec;
 	padding: 12px 14px;
 	font-size: 12px;
 	line-height: 1.5;
+	overflow: auto;
+	min-height: 0;
+}
+
+body.is-resizing-table {
+	cursor: ns-resize;
+	user-select: none;
 }
 
 #call-trace-panel h3 {

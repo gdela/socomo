@@ -93,11 +93,19 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 	table.appendChild(tbody);
 	const tableWrapper = document.createElement('div');
 	tableWrapper.id = 'table-wrapper';
-	tableWrapper.appendChild(table);
+	const tablePane = document.createElement('div');
+	tablePane.id = 'table-pane';
+	tablePane.appendChild(table);
+	tableWrapper.appendChild(tablePane);
+	const splitHandle = document.createElement('div');
+	splitHandle.id = 'table-splitter';
+	splitHandle.title = '拖动调整表格和调用链的高度占比';
+	tableWrapper.appendChild(splitHandle);
 	const tracePanel = document.createElement('div');
 	tracePanel.id = 'call-trace-panel';
 	tracePanel.innerHTML = '<div class="call-trace-placeholder">点击表格中的类名或方法名，向上追溯调用链。</div>';
 	tableWrapper.appendChild(tracePanel);
+	setupVerticalResize(tableWrapper, tablePane, tracePanel, splitHandle);
 	tableWrapper.addEventListener('click', event => {
 		event.stopPropagation();
 		const trigger = event.target.closest('.trace-link');
@@ -110,6 +118,66 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 		renderCallTrace(tracePanel, traceToTop(reverseGraph, target));
 	});
 	return tableWrapper;
+}
+
+function setupVerticalResize(wrapper, tablePane, tracePanel, splitHandle) {
+	const MIN_PANEL_HEIGHT = 140;
+	const DEFAULT_TRACE_RATIO = 0.4;
+	const MAX_TRACE_RATIO = 0.5;
+
+	const clampTraceHeight = requestedHeight => {
+		const wrapperHeight = wrapper.clientHeight || 0;
+		if (!wrapperHeight) return requestedHeight;
+		const maxTraceHeight = Math.max(MIN_PANEL_HEIGHT, Math.floor(wrapperHeight * MAX_TRACE_RATIO));
+		const minTraceHeight = Math.min(MIN_PANEL_HEIGHT, maxTraceHeight);
+		return Math.min(Math.max(requestedHeight, minTraceHeight), maxTraceHeight);
+	};
+
+	const applyTraceHeight = requestedHeight => {
+		const wrapperHeight = wrapper.clientHeight || 0;
+		if (!wrapperHeight) return;
+		const splitHeight = splitHandle.offsetHeight || 8;
+		const traceHeight = clampTraceHeight(requestedHeight);
+		const tableHeight = Math.max(
+			MIN_PANEL_HEIGHT,
+			wrapperHeight - splitHeight - traceHeight
+		);
+		tablePane.style.flex = `0 0 ${tableHeight}px`;
+		tracePanel.style.flex = `0 0 ${traceHeight}px`;
+	};
+
+	requestAnimationFrame(() => {
+		const initialHeight = Math.floor((wrapper.clientHeight || 0) * DEFAULT_TRACE_RATIO);
+		applyTraceHeight(initialHeight);
+	});
+
+	let startY = 0;
+	let startTraceHeight = 0;
+
+	const onPointerMove = event => {
+		const nextTraceHeight = startTraceHeight - (event.clientY - startY);
+		applyTraceHeight(nextTraceHeight);
+	};
+
+	const onPointerUp = () => {
+		window.removeEventListener('pointermove', onPointerMove);
+		window.removeEventListener('pointerup', onPointerUp);
+		document.body.classList.remove('is-resizing-table');
+	};
+
+	splitHandle.addEventListener('pointerdown', event => {
+		event.preventDefault();
+		startY = event.clientY;
+		startTraceHeight = tracePanel.getBoundingClientRect().height;
+		document.body.classList.add('is-resizing-table');
+		window.addEventListener('pointermove', onPointerMove);
+		window.addEventListener('pointerup', onPointerUp);
+	});
+
+	window.addEventListener('resize', () => {
+		const currentTraceHeight = tracePanel.getBoundingClientRect().height;
+		applyTraceHeight(currentTraceHeight);
+	});
 }
 
 function appendClassCell(cell, symbol) {
