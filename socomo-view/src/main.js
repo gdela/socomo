@@ -6,7 +6,7 @@
 
 import './main.scss';
 import drawDiagram from './diagram';
-import drawTable from './table';
+import drawTable, {drawClassList} from './table';
 import Mousetrap from 'mousetrap';
 
 function socomo() {
@@ -28,6 +28,7 @@ function socomo() {
 			<h1>${moduleName}</h1>
 			<div id="level-navigation">
 				<button id="level-up-button" type="button">收起最近展开</button>
+				<button id="expand-all-button" type="button">全部展开</button>
 				<div id="breadcrumb"></div>
 			</div>
 		</div>
@@ -46,6 +47,7 @@ function socomo() {
 	const searchInput = document.getElementById('search-input');
 	const searchButton = document.getElementById('search-button');
 	const levelUpButton = document.getElementById('level-up-button');
+	const expandAllButton = document.getElementById('expand-all-button');
 	const breadcrumb = document.getElementById('breadcrumb');
 
 	let currentDiagram;
@@ -259,32 +261,43 @@ function socomo() {
 	function filterLevel(originalLevel, codemap, keyword) {
 		if (!keyword || !codemap) return originalLevel;
 
+		const normalizedKeyword = keyword.toLowerCase();
 		const coverageIndex = buildCoverageIndex(originalLevel.components);
 		const matchedPairs = new Set();
+		const componentSet = new Set();
+
+		for (const [componentName, component] of Object.entries(originalLevel.components)) {
+			if (
+				matchesKeyword(componentName, normalizedKeyword) ||
+				matchesKeyword(component.label, normalizedKeyword) ||
+				matchesKeyword(component.packageName, normalizedKeyword)
+			) {
+				componentSet.add(componentName);
+			}
+		}
 
 		for (const pkg of codemap.packageDeps) {
+			const packageMatched =
+				matchesKeyword(pkg.from.fqn, normalizedKeyword) ||
+				matchesKeyword(pkg.to.fqn, normalizedKeyword);
 			for (const memberDep of pkg.memberDeps) {
 				if (
-					(memberDep.from.className && memberDep.from.className.includes(keyword)) ||
-					(memberDep.from.memberName && memberDep.from.memberName.includes(keyword)) ||
-					(memberDep.to.className && memberDep.to.className.includes(keyword)) ||
-					(memberDep.to.memberName && memberDep.to.memberName.includes(keyword))
+					packageMatched ||
+					matchesKeyword(memberDep.from.className, normalizedKeyword) ||
+					matchesKeyword(memberDep.from.memberName, normalizedKeyword) ||
+					matchesKeyword(memberDep.to.className, normalizedKeyword) ||
+					matchesKeyword(memberDep.to.memberName, normalizedKeyword)
 				) {
 					const compFrom = mapPackageToVisibleComponent(pkg.from.fqn, coverageIndex);
 					const compTo = mapPackageToVisibleComponent(pkg.to.fqn, coverageIndex);
 					if (compFrom && compTo) {
 						matchedPairs.add(JSON.stringify({from: compFrom.name, to: compTo.name}));
+						componentSet.add(compFrom.name);
+						componentSet.add(compTo.name);
 					}
 					break;
 				}
 			}
-		}
-
-		const componentSet = new Set();
-		for (const pairStr of matchedPairs) {
-			const pair = JSON.parse(pairStr);
-			componentSet.add(pair.from);
-			componentSet.add(pair.to);
 		}
 
 		const filteredComponents = {};
@@ -327,13 +340,19 @@ function socomo() {
 	}
 
 	searchButton.addEventListener('click', performSearch);
-	searchInput.addEventListener('keypress', event => {
+	searchInput.addEventListener('keydown', event => {
 		if (event.key === 'Enter') performSearch();
 	});
 
 	levelUpButton.addEventListener('click', () => {
 		if (expandedLevels.length === 0) return;
 		collapseExpandedLevel(expandedLevels[expandedLevels.length - 1]);
+	});
+
+	expandAllButton.addEventListener('click', () => {
+		if (!hasCodemap()) return;
+		expandedLevels.splice(0, expandedLevels.length, ...collectExpandableLevels(getCodemap(), rootLevelName));
+		renderCurrentLevel();
 	});
 
 	function collapseExpandedLevel(levelName) {
@@ -361,11 +380,22 @@ function socomo() {
 			console.warn('socomo.data not yet loaded or completely missing');
 			return;
 		}
-		if (isRootMarker) return;
-		if (!packageName || packageName === rootLevelName) return;
+		if (!packageName && !isRootMarker) return;
+
+		if (isRootMarker) {
+			const rootComponentName = packageName ? `${packageName}.[root]` : '[root]';
+			drawClassList(mainTable, getCodemap(), rootComponentName, currentKeyword);
+			mainTable.style.display = 'flex';
+			return;
+		}
+		if (packageName === rootLevelName) return;
 
 		const absoluteLevel = packageName;
-		if (!hasChildPackages(getCodemap(), absoluteLevel)) return;
+		if (!hasChildPackages(getCodemap(), absoluteLevel)) {
+			drawClassList(mainTable, getCodemap(), absoluteLevel, currentKeyword);
+			mainTable.style.display = 'flex';
+			return;
+		}
 
 		const existingIndex = expandedLevels.indexOf(absoluteLevel);
 		if (existingIndex !== -1) {
@@ -384,6 +414,30 @@ function socomo() {
 			packet.fqn !== levelName
 			&& packet.fqn.startsWith(prefix)
 		);
+	}
+
+	function collectExpandableLevels(codemap, levelName) {
+		if (!codemap || !codemap.packages) return [];
+		const levels = new Set();
+		const rootPrefix = levelName === '' ? '' : (levelName + '.');
+		for (const packet of codemap.packages) {
+			if (packet.fqn === levelName || !packet.fqn.startsWith(rootPrefix)) continue;
+			const suffix = packet.fqn.slice(rootPrefix.length);
+			const segments = suffix.split('.').filter(Boolean);
+			const pathSegments = [];
+			for (const segment of segments) {
+				pathSegments.push(segment);
+				const absoluteLevel = appendLevel(levelName, pathSegments.join('.'));
+				if (hasChildPackages(codemap, absoluteLevel)) {
+					levels.add(absoluteLevel);
+				}
+			}
+		}
+		return Array.from(levels).sort();
+	}
+
+	function matchesKeyword(value, normalizedKeyword) {
+		return value != null && value.toLowerCase().includes(normalizedKeyword);
 	}
 
 	function appendLevel(levelName, suffix) {

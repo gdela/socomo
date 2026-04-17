@@ -6,6 +6,7 @@
 import './table.scss';
 
 export default drawTable;
+export { drawClassList };
 
 function drawTable(tableContainer, codemap, fromComponentName, toComponentName, keyword) {
 	const filteredDeps = filterAndRelativize(codemap.packageDeps, fromComponentName, toComponentName);
@@ -13,6 +14,14 @@ function drawTable(tableContainer, codemap, fromComponentName, toComponentName, 
 	tableContainer.innerHTML = '';
 	tableContainer.appendChild(table);
 	return table;
+}
+
+function drawClassList(tableContainer, codemap, componentName, keyword) {
+	const classes = listClasses(codemap, componentName, keyword);
+	const panel = createClassList(classes, codemap, componentName, keyword);
+	tableContainer.innerHTML = '';
+	tableContainer.appendChild(panel);
+	return panel;
 }
 
 function filterAndRelativize(packageDeps, fromComponentName, toComponentName) {
@@ -120,6 +129,232 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 	return tableWrapper;
 }
 
+function listClasses(codemap, componentName, keyword) {
+	const trimRoot = componentName.replace('.[root]', '').replace('[root]', '');
+	const normalizedKeyword = keyword ? keyword.toLowerCase() : '';
+	const classes = new Map();
+
+	for (const packet of codemap.packages || []) {
+		const packetMembers = packet.members || [];
+		const belongsTo = componentName.endsWith('[root]')
+			? packet.fqn === trimRoot
+			: packet.fqn === trimRoot || packet.fqn.startsWith(trimRoot + '.');
+		if (!belongsTo) continue;
+		for (const member of packetMembers) {
+			addClassEntry(classes, packet.fqn, member.className, normalizedKeyword);
+		}
+	}
+
+	if (classes.size > 0) {
+		return Array.from(classes.values()).sort((left, right) => left.fullClassName.localeCompare(right.fullClassName));
+	}
+
+	for (const packageDep of codemap.packageDeps || []) {
+		collectClassesFromMember(packageDep.from.fqn, packageDep.memberDeps, 'from', componentName, trimRoot, normalizedKeyword, classes);
+		collectClassesFromMember(packageDep.to.fqn, packageDep.memberDeps, 'to', componentName, trimRoot, normalizedKeyword, classes);
+	}
+
+	return Array.from(classes.values()).sort((left, right) => left.fullClassName.localeCompare(right.fullClassName));
+}
+
+function collectClassesFromMember(packageFqn, memberDeps, side, componentName, trimRoot, normalizedKeyword, classes) {
+	if (!belongsToComponent(componentName, trimRoot, packageFqn)) return;
+	for (const memberDep of memberDeps || []) {
+		addClassEntry(classes, packageFqn, memberDep[side].className, normalizedKeyword);
+	}
+}
+
+function belongsToComponent(componentName, trimRoot, packageFqn) {
+	return componentName.endsWith('[root]')
+		? packageFqn === trimRoot
+		: packageFqn === trimRoot || packageFqn.startsWith(trimRoot + '.');
+}
+
+function addClassEntry(classes, packageFqn, className, normalizedKeyword) {
+	if (!className) return;
+	const fullClassName = packageFqn ? `${packageFqn}.${className}` : className;
+	if (normalizedKeyword && !fullClassName.toLowerCase().includes(normalizedKeyword)) return;
+	classes.set(fullClassName, {
+		packageFqn,
+		className,
+		fullClassName
+	});
+}
+
+function listMethods(codemap, packageFqn, className, keyword) {
+	const normalizedKeyword = keyword ? keyword.toLowerCase() : '';
+	const methods = new Set();
+
+	for (const packet of codemap.packages || []) {
+		if (packet.fqn !== packageFqn) continue;
+		for (const member of packet.members || []) {
+			if (member.className !== className || !isMethodName(member.memberName)) continue;
+			if (normalizedKeyword && !member.memberName.toLowerCase().includes(normalizedKeyword)) continue;
+			methods.add(member.memberName);
+		}
+	}
+
+	if (methods.size > 0) {
+		return Array.from(methods).sort();
+	}
+
+	for (const packageDep of codemap.packageDeps || []) {
+		collectMethodsFromMember(packageDep.from.fqn, packageDep.memberDeps, 'from', packageFqn, className, normalizedKeyword, methods);
+		collectMethodsFromMember(packageDep.to.fqn, packageDep.memberDeps, 'to', packageFqn, className, normalizedKeyword, methods);
+	}
+
+	return Array.from(methods).sort();
+}
+
+function collectMethodsFromMember(memberPackageFqn, memberDeps, side, packageFqn, className, normalizedKeyword, methods) {
+	if (memberPackageFqn !== packageFqn) return;
+	for (const memberDep of memberDeps || []) {
+		const member = memberDep[side];
+		if (member.className !== className || !isMethodName(member.memberName)) continue;
+		if (normalizedKeyword && !member.memberName.toLowerCase().includes(normalizedKeyword)) continue;
+		methods.add(member.memberName);
+	}
+}
+
+function isMethodName(memberName) {
+	return memberName != null && memberName.includes('()');
+}
+
+function createClassList(classes, codemap, componentName, keyword) {
+	const tableWrapper = document.createElement('div');
+	tableWrapper.id = 'table-wrapper';
+	const reverseGraph = buildReverseCallGraph(codemap);
+
+	const tablePane = document.createElement('div');
+	tablePane.id = 'table-pane';
+	const classLayout = document.createElement('div');
+	classLayout.className = 'class-list-layout';
+	const classListPane = document.createElement('div');
+	classListPane.className = 'class-list-pane';
+	const methodListPane = document.createElement('div');
+	methodListPane.className = 'method-list-pane';
+
+	const table = document.createElement('table');
+	const thead = document.createElement('thead');
+	thead.insertRow().innerHTML = `<th>类清单: ${componentName}</th>`;
+	table.appendChild(thead);
+	const tbody = document.createElement('tbody');
+	let selectedClassButton = null;
+	let selectedMethodButton = null;
+
+	for (const entry of classes) {
+		const row = tbody.insertRow();
+		const cell = row.insertCell();
+		const button = document.createElement('button');
+		button.type = 'button';
+		button.className = 'trace-link class-list-link';
+		button.dataset.packageFqn = entry.packageFqn;
+		button.dataset.className = entry.className;
+		button.textContent = entry.className;
+		cell.appendChild(button);
+	}
+
+	if (classes.length === 0) {
+		const row = tbody.insertRow();
+		const cell = row.insertCell();
+		cell.textContent = '没有匹配到类。';
+	}
+
+	table.appendChild(tbody);
+	classListPane.appendChild(table);
+	classLayout.appendChild(classListPane);
+	methodListPane.appendChild(createMethodListContent([], null));
+	classLayout.appendChild(methodListPane);
+	tablePane.appendChild(classLayout);
+	tableWrapper.appendChild(tablePane);
+
+	const splitHandle = document.createElement('div');
+	splitHandle.id = 'table-splitter';
+	splitHandle.title = '拖动调整表格和说明区域的高度占比';
+	tableWrapper.appendChild(splitHandle);
+
+	const tracePanel = document.createElement('div');
+	tracePanel.id = 'call-trace-panel';
+	tracePanel.innerHTML = `
+		<h3>向上调用链</h3>
+		<p class="call-trace-placeholder">当前节点是叶子目录，左侧展示类清单，点击类名后在右侧查看方法清单，再点击方法名查看调用链。</p>
+	`;
+	tableWrapper.appendChild(tracePanel);
+	setupVerticalResize(tableWrapper, tablePane, tracePanel, splitHandle);
+	tableWrapper.addEventListener('click', event => {
+		event.stopPropagation();
+		const classTrigger = event.target.closest('.class-list-link');
+		if (classTrigger) {
+			if (selectedClassButton) {
+				selectedClassButton.classList.remove('selected-class');
+			}
+			selectedClassButton = classTrigger;
+			selectedClassButton.classList.add('selected-class');
+			selectedMethodButton = null;
+			const methodPanel = createMethodListContent(
+				listMethods(codemap, classTrigger.dataset.packageFqn, classTrigger.dataset.className, keyword),
+				classTrigger.dataset.packageFqn,
+				classTrigger.dataset.className
+			);
+			methodListPane.innerHTML = '';
+			methodListPane.appendChild(methodPanel);
+			tracePanel.innerHTML = `
+				<h3>向上调用链</h3>
+				<p class="call-trace-placeholder">已选中类 ${classTrigger.dataset.className}，点击右侧方法名查看调用链。</p>
+			`;
+			return;
+		}
+		const traceTrigger = event.target.closest('.method-list-link, .trace-node-link');
+		if (!traceTrigger) return;
+		if (traceTrigger.classList.contains('method-list-link')) {
+			if (selectedMethodButton) {
+				selectedMethodButton.classList.remove('selected-method');
+			}
+			selectedMethodButton = traceTrigger;
+			selectedMethodButton.classList.add('selected-method');
+		}
+		renderCallTrace(tracePanel, traceToTop(reverseGraph, {
+			packageFqn: traceTrigger.dataset.packageFqn,
+			className: traceTrigger.dataset.className,
+			memberName: traceTrigger.dataset.memberName || null
+		}));
+	});
+
+	return tableWrapper;
+}
+
+function createMethodListContent(methods, packageFqn, className) {
+	const container = document.createElement('div');
+	container.className = 'method-list-content';
+	const table = document.createElement('table');
+	const thead = document.createElement('thead');
+	thead.insertRow().innerHTML = `<th>方法清单${className ? `: ${className}` : ''}</th>`;
+	table.appendChild(thead);
+	const tbody = document.createElement('tbody');
+
+	for (const method of methods) {
+		const row = tbody.insertRow();
+		const cell = row.insertCell();
+		const button = document.createElement('button');
+		button.type = 'button';
+		button.className = 'trace-link method-list-link';
+		button.dataset.packageFqn = packageFqn;
+		button.dataset.className = className;
+		button.dataset.memberName = method;
+		button.textContent = method;
+		cell.appendChild(button);
+	}
+
+	if (methods.length === 0) {
+		const row = tbody.insertRow();
+		row.insertCell().textContent = className ? '没有匹配到方法。' : '点击左侧类名查看方法清单。';
+	}
+
+	table.appendChild(tbody);
+	container.appendChild(table);
+	return container;
+}
+
 function setupVerticalResize(wrapper, tablePane, tracePanel, splitHandle) {
 	const MIN_PANEL_HEIGHT = 140;
 	const DEFAULT_TRACE_RATIO = 0.4;
@@ -221,33 +456,39 @@ function buildReverseCallGraph(codemap) {
 	for (const packageDep of codemap.packageDeps) {
 		for (const memberDep of packageDep.memberDeps) {
 			if (!memberDep.from.memberName) continue;
-			const caller = {
+			const caller = normalizeRef({
 				packageFqn: packageDep.from.fqn,
 				className: memberDep.from.className,
 				memberName: memberDep.from.memberName
-			};
+			});
 			addIncoming(incomingByTarget, toKey({
 				packageFqn: packageDep.to.fqn,
 				className: memberDep.to.className,
 				memberName: null
-			}), caller);
+			}), caller, memberDep.inLoop === true);
 			if (memberDep.to.memberName) {
 				addIncoming(incomingByTarget, toKey({
 					packageFqn: packageDep.to.fqn,
 					className: memberDep.to.className,
 					memberName: memberDep.to.memberName
-				}), caller);
+				}), caller, memberDep.inLoop === true);
 			}
 		}
 	}
 	return incomingByTarget;
 }
 
-function addIncoming(incomingByTarget, key, caller) {
+function addIncoming(incomingByTarget, key, caller, inLoop) {
 	if (!incomingByTarget.has(key)) {
 		incomingByTarget.set(key, new Map());
 	}
-	incomingByTarget.get(key).set(toKey(caller), caller);
+	const callers = incomingByTarget.get(key);
+	const callerKey = toKey(caller);
+	const existing = callers.get(callerKey);
+	callers.set(callerKey, {
+		ref: caller,
+		inLoop: (existing && existing.inLoop) || inLoop === true
+	});
 }
 
 function traceToTop(reverseGraph, target) {
@@ -255,27 +496,35 @@ function traceToTop(reverseGraph, target) {
 	const targetRef = normalizeRef(target);
 	const callers = Array.from(reverseGraph.get(toKey(target)) || [])
 		.map(([, caller]) => caller)
-		.sort((left, right) => formatRef(left).localeCompare(formatRef(right)));
+		.sort((left, right) => formatRef(left.ref).localeCompare(formatRef(right.ref)));
 	const roots = callers.map(caller =>
-		buildTraceNode(reverseGraph, normalizeRef(caller), [targetRef, normalizeRef(caller)], visitedCycles)
+		buildTraceNode(reverseGraph, caller, [targetRef, normalizeRef(caller.ref)], visitedCycles)
 	);
-	return {target: targetRef, roots, visitedCycles};
+	return {
+		target: targetRef,
+		roots,
+		visitedCycles,
+		hasLoopCalls: containsLoopCalls(roots)
+	};
 }
 
-function buildTraceNode(reverseGraph, current, path, visitedCycles) {
+function buildTraceNode(reverseGraph, currentEdge, path, visitedCycles) {
+	const current = normalizeRef(currentEdge.ref);
 	const callers = Array.from(reverseGraph.get(toKey(current)) || [])
-		.map(([, caller]) => normalizeRef(caller))
-		.sort((left, right) => formatRef(left).localeCompare(formatRef(right)));
+		.map(([, caller]) => caller)
+		.sort((left, right) => formatRef(left.ref).localeCompare(formatRef(right.ref)));
 	const parents = [];
 	for (const caller of callers) {
-		if (path.some(step => toKey(step) === toKey(caller))) {
-			visitedCycles.push([caller, ...path.slice().reverse()]);
+		const callerRef = normalizeRef(caller.ref);
+		if (path.some(step => toKey(step) === toKey(callerRef))) {
+			visitedCycles.push([callerRef, ...path.slice().reverse()]);
 			continue;
 		}
-		parents.push(buildTraceNode(reverseGraph, caller, [...path, caller], visitedCycles));
+		parents.push(buildTraceNode(reverseGraph, caller, [...path, callerRef], visitedCycles));
 	}
 	return {
 		ref: current,
+		inLoop: currentEdge.inLoop === true,
 		parents
 	};
 }
@@ -292,6 +541,13 @@ function renderCallTrace(tracePanel, result) {
 	targetLine.title = formatRef(result.target);
 	tracePanel.appendChild(targetLine);
 
+	const loopInfo = document.createElement('p');
+	loopInfo.className = 'call-trace-note';
+	loopInfo.textContent = result.hasLoopCalls
+		? '该调用链中包含位于循环体内的调用，节点旁会标记“循环”。'
+		: '该调用链中未发现位于循环体内的调用。';
+	tracePanel.appendChild(loopInfo);
+
 	if (result.roots.length === 0) {
 		const empty = document.createElement('p');
 		empty.className = 'call-trace-placeholder';
@@ -300,12 +556,12 @@ function renderCallTrace(tracePanel, result) {
 		return;
 	}
 
-	tracePanel.appendChild(renderTraceForest(result.roots));
+	tracePanel.appendChild(renderTracePaths(result.roots));
 
 	if (result.visitedCycles.length > 0) {
 		const note = document.createElement('p');
 		note.className = 'call-trace-note';
-		note.textContent = '检测到循环调用，已停止重复追溯。';
+		note.textContent = '检测到调用追溯环，已停止重复追溯。';
 		tracePanel.appendChild(note);
 	}
 }
@@ -318,28 +574,66 @@ function normalizeRef(ref) {
 	};
 }
 
-function renderTraceForest(roots) {
-	const list = document.createElement('ul');
-	list.className = 'call-trace-tree';
+function renderTracePaths(roots) {
+	const container = document.createElement('div');
+	container.className = 'call-trace-paths';
+	const paths = [];
 	for (const root of roots) {
-		list.appendChild(renderTraceNode(root));
+		collectTracePaths(root, [], paths);
 	}
-	return list;
+	paths.forEach((path, index) => {
+		container.appendChild(renderTracePath(path, index + 1));
+	});
+	return container;
 }
 
-function renderTraceNode(node) {
-	const item = document.createElement('li');
-	item.className = 'call-trace-node';
-	item.appendChild(createTraceButton(node.ref));
-	if (node.parents.length > 0) {
-		const children = document.createElement('ul');
-		children.className = 'call-trace-tree';
-		for (const parent of node.parents) {
-			children.appendChild(renderTraceNode(parent));
-		}
-		item.appendChild(children);
+function collectTracePaths(node, currentPath, paths) {
+	const nextPath = [...currentPath, node];
+	if (node.parents.length === 0) {
+		paths.push(nextPath);
+		return;
 	}
-	return item;
+	for (const parent of node.parents) {
+		collectTracePaths(parent, nextPath, paths);
+	}
+}
+
+function renderTracePath(path, index) {
+	const section = document.createElement('section');
+	section.className = 'call-trace-path';
+
+	const title = document.createElement('h4');
+	title.className = 'call-trace-path-title';
+	title.textContent = `链路 ${index}`;
+	section.appendChild(title);
+
+	const list = document.createElement('ol');
+	list.className = 'call-trace-path-list';
+	for (const [depth, node] of path.entries()) {
+		const item = document.createElement('li');
+		item.className = 'call-trace-path-item';
+		item.style.paddingLeft = `${depth * 18}px`;
+
+		const arrow = document.createElement('span');
+		arrow.className = 'call-trace-path-arrow';
+		arrow.textContent = depth === 0 ? '↖' : '←';
+
+		const content = document.createElement('div');
+		content.className = 'call-trace-node-content';
+		content.appendChild(arrow);
+		content.appendChild(createTraceButton(node.ref));
+		if (node.inLoop) {
+			const badge = document.createElement('span');
+			badge.className = 'loop-badge';
+			badge.textContent = '循环';
+			badge.title = '该调用位于循环体内';
+			content.appendChild(badge);
+		}
+		item.appendChild(content);
+		list.appendChild(item);
+	}
+	section.appendChild(list);
+	return section;
 }
 
 function createTraceButton(ref) {
@@ -376,6 +670,15 @@ function formatRef(ref) {
 
 function formatCompactRef(ref) {
 	return ref.memberName ? (ref.className + '.' + ref.memberName) : ref.className;
+}
+
+function containsLoopCalls(nodes) {
+	for (const node of nodes) {
+		if (node.inLoop || containsLoopCalls(node.parents)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function shortenPackage(packageFqn) {
