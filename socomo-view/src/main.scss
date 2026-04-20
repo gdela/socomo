@@ -26,6 +26,12 @@ body {
 	gap: 8px;
 }
 
+#title-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
 #level-navigation {
 	display: flex;
 	align-items: center;
@@ -36,6 +42,7 @@ body {
 
 #level-up-button,
 #expand-all-button,
+#header-toggle-button,
 .breadcrumb-item {
 	border: 0;
 	background: rgba(255, 255, 255, 0.18);
@@ -49,6 +56,10 @@ body {
 #level-up-button:disabled {
 	opacity: 0.45;
 	cursor: default;
+}
+
+#header-toggle-button {
+	align-self: flex-start;
 }
 
 #breadcrumb {
@@ -71,6 +82,23 @@ body {
 	display: flex;
 	gap: 10px;
 	padding-top: 6px;
+}
+
+body.header-collapsed #header-container {
+	align-items: center;
+}
+
+body.header-collapsed #title-container {
+	gap: 0;
+}
+
+body.header-collapsed #level-navigation {
+	display: none;
+}
+
+body.header-collapsed #search-container {
+	padding-top: 0;
+	align-items: center;
 }
 
 #search-input {

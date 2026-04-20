@@ -107,11 +107,22 @@ public class SocomoFacade {
 	 * @param dataFile the data output file that contains detailed data about analyzed code, typically named {@code socomo.data}
 	 */
 	public void visualizeInto(File htmlFile, File dataFile) {
+		visualizeInto(htmlFile, dataFile, false);
+	}
+
+	/**
+	 * Builds the composition visualizer into given files.
+	 * @param htmlFile the html output file which opened in a browser starts the visualizer, typically named {@code socomo.html}
+	 * @param dataFile the data output file that contains detailed data about analyzed code, typically named {@code socomo.data}
+	 * @param localAssets if true, generate html that loads all js/css dependencies from the same directory
+	 */
+	public void visualizeInto(File htmlFile, File dataFile, boolean localAssets) {
 		validState(level != null);
 		output = shorten(htmlFile);
 		VisualizerBuilder builder = new VisualizerBuilder();
 		builder.setModule(module);
 		builder.setLevel(level);
+		builder.setLocalAssets(localAssets);
 		builder.buildInto(output, dataFile);
 		saveDetails(dataFile);
 	}

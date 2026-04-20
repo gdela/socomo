@@ -77,6 +77,12 @@ class SocomoMain implements Callable<Void> {
 	)
 	private boolean display;
 
+	@Option(
+			names = { "--local-assets" },
+			description = "Generate socomo.html to load all javascript/css dependencies from the same directory."
+	)
+	private boolean localAssets;
+
 	public static void main(String[] args) {
 		CommandLine.call(new SocomoMain(), args);
 	}
@@ -115,7 +121,7 @@ class SocomoMain implements Callable<Void> {
 		} else {
 			socomo.guessLevel();
 		}
-		socomo.visualizeInto(outputHtmlFile, outputDataFile);
+		socomo.visualizeInto(outputHtmlFile, outputDataFile, localAssets);
 		if (display) {
 			socomo.display();
 		}

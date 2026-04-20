@@ -36,7 +36,30 @@ mvn pl.gdela:socomo-maven:display
 java -jar socomo-standalone.jar -d path/to/your.jar
 ```
 
+你也可以同时分析多个 jar 或 class 目录，这样它们之间的依赖会显示在同一张图里：
+
+```bash
+java -jar socomo-standalone.jar app.jar common.jar target/classes
+```
+
+如果你希望 `socomo.html` 从同目录加载 javascript 和 stylesheet，可以使用本地资源模式：
+
+```bash
+java -jar socomo-standalone.jar --local-assets app.jar common.jar
+```
+
 上述任一命令都会生成 `socomo.html` 文件并在浏览器中打开。你将看到代码结构的交互式可视化。
+
+在 `--local-assets` 模式下，需要把以下文件和 `socomo.html` 放在同一目录：
+
+- `socomo.data`
+- `index.js`
+- `index.css`
+- `bundle.js`
+- `bundle.css`
+- `cytoscape.js`
+- `klay.js`
+- `cytoscape-klay.js`
 
 要跟踪组成的变化，将 `socomo.html` 文件提交到你的源代码仓库，并添加[socomo maven 插件](#socomo-maven-plugin)到你的项目。每当组成发生变化时，插件会更新这个人类可读的文件，这样你就可以在最方便的地方——源代码仓库中拥有变化历史。
 
@@ -116,6 +139,19 @@ Socomo 是一个有主见的工具，要求你以正确的方式构建代码以�
 
 ```bash
 java -jar socomo-standalone-*.jar --help
+```
+
+常见 standalone 用法示例：
+
+```bash
+# 分析单个 jar 并打开结果
+java -jar socomo-standalone-*.jar -d app.jar
+
+# 一起分析多个 jar/目录
+java -jar socomo-standalone-*.jar app.jar common.jar target/classes
+
+# 生成从同目录加载全部 js/css 依赖的 socomo.html
+java -jar socomo-standalone-*.jar --local-assets app.jar common.jar
 ```
 
 

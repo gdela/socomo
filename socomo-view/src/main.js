@@ -25,7 +25,10 @@ function socomo() {
 	document.body.innerHTML += `
 	<div id="header-container">
 		<div id="title-container">
-			<h1>${moduleName}</h1>
+			<div id="title-row">
+				<h1>${moduleName}</h1>
+				<button id="header-toggle-button" type="button">收起</button>
+			</div>
 			<div id="level-navigation">
 				<button id="level-up-button" type="button">收起最近展开</button>
 				<button id="expand-all-button" type="button">全部展开</button>
@@ -49,9 +52,11 @@ function socomo() {
 	const levelUpButton = document.getElementById('level-up-button');
 	const expandAllButton = document.getElementById('expand-all-button');
 	const breadcrumb = document.getElementById('breadcrumb');
+	const headerToggleButton = document.getElementById('header-toggle-button');
 
 	let currentDiagram;
 	let currentKeyword = '';
+	let headerCollapsed = false;
 	const expandedLevels = [];
 
 	renderCurrentLevel();
@@ -63,6 +68,7 @@ function socomo() {
 		doLongTask(() => {
 			if (currentDiagram) {
 				currentDiagram.updateLevel(displayedLevel);
+				requestAnimationFrame(() => currentDiagram.refreshContainerGeometry());
 				return;
 			}
 			currentDiagram = drawDiagram(
@@ -72,6 +78,11 @@ function socomo() {
 				onComponentSelected
 			);
 		});
+	}
+
+	function updateHeaderState() {
+		document.body.classList.toggle('header-collapsed', headerCollapsed);
+		headerToggleButton.textContent = headerCollapsed ? '展开' : '收起';
 	}
 
 	function updateNavigation() {
@@ -343,6 +354,15 @@ function socomo() {
 	searchInput.addEventListener('keydown', event => {
 		if (event.key === 'Enter') performSearch();
 	});
+	headerToggleButton.addEventListener('click', () => {
+		headerCollapsed = !headerCollapsed;
+		updateHeaderState();
+		requestAnimationFrame(() => {
+			if (currentDiagram) {
+				currentDiagram.refreshContainerGeometry();
+			}
+		});
+	});
 
 	levelUpButton.addEventListener('click', () => {
 		if (expandedLevels.length === 0) return;
@@ -354,6 +374,7 @@ function socomo() {
 		expandedLevels.splice(0, expandedLevels.length, ...collectExpandableLevels(getCodemap(), rootLevelName));
 		renderCurrentLevel();
 	});
+	updateHeaderState();
 
 	function collapseExpandedLevel(levelName) {
 		const levelPrefix = levelName + '.';
@@ -519,9 +540,12 @@ function socomo() {
 }
 
 function doLongTask(task) {
-	document.body.className = 'loading-state';
+	document.body.classList.add('loading-state');
 	// the delay is to give browser a chance to render dom changes done so far
-	setTimeout(() => { task(); document.body.className = ''; }, 30);
+	setTimeout(() => {
+		task();
+		document.body.classList.remove('loading-state');
+	}, 30);
 }
 
 // expose socomo function to the index.js bootstrapping code

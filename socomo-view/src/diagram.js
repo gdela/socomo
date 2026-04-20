@@ -212,9 +212,14 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 		layout.run();
 	}
 
+	function refreshContainerGeometry() {
+		cy.resize();
+	}
+
 	return {
 		cy,
 		updateLevel,
+		refreshContainerGeometry,
 		destroy: () => cy.destroy()
 	};
 }

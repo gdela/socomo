@@ -43,8 +43,26 @@ You can also analyze several jars or class directories together, so dependencies
 java -jar socomo-standalone.jar app.jar common.jar target/classes
 ```
 
+If you want `socomo.html` to work with javascript and stylesheets loaded from the same directory,
+generate it in local-assets mode:
+
+```bash
+java -jar socomo-standalone.jar --local-assets app.jar common.jar
+```
+
 Either of the above commands generates the `socomo.html` file and opens it in the browser.
 You'll be presented with an interactive visualization of the structure of the code.
+
+In `--local-assets` mode, keep the following files next to `socomo.html`:
+
+- `socomo.data`
+- `index.js`
+- `index.css`
+- `bundle.js`
+- `bundle.css`
+- `cytoscape.js`
+- `klay.js`
+- `cytoscape-klay.js`
 
 To track changes to the composition commit the `socomo.html` file to your source code repository
 and add [socomo maven plugin](#socomo-maven-plugin) to your project. Whenever composition changes
@@ -142,6 +160,19 @@ Download the [latest release] and do this to get help how to use it:
 
 ```bash
 java -jar socomo-standalone-*.jar --help
+```
+
+Useful standalone examples:
+
+```bash
+# analyze one jar and open the result
+java -jar socomo-standalone-*.jar -d app.jar
+
+# analyze multiple jars/directories together
+java -jar socomo-standalone-*.jar app.jar common.jar target/classes
+
+# generate socomo.html that loads all js/css dependencies from the same directory
+java -jar socomo-standalone-*.jar --local-assets app.jar common.jar
 ```
 
 
