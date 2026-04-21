@@ -99,10 +99,11 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 	// invoke dependency selected handler on edge click
 	cy.on('tap', 'edge', event => {
 		const edge = event.target;
-		const prefix = currentLevel.level !== '' ? (currentLevel.level + '.') : '';
 		dependencySelectedHandler(
-			prefix + edge.source().id(),
-			prefix + edge.target().id()
+			edge.source().data('packageName'),
+			edge.target().data('packageName'),
+			edge.source().data('sourceName') || null,
+			edge.target().data('sourceName') || null
 		);
 	});
 
@@ -111,7 +112,8 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 		if (event.target.isParent() && !clickedGroupHeader(event)) return;
 		componentSelectedHandler(
 			event.target.data('packageName'),
-			event.target.data('isRootMarker') === true
+			event.target.data('isRootMarker') === true,
+			event.target.data('sourceName') || null
 		);
 		if (event.target.isParent()) {
 			event.target.unselect();
@@ -180,6 +182,7 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler, compone
 					existing.data('isGroup', element.data.isGroup === true);
 					existing.data('isRootMarker', element.data.isRootMarker === true);
 					existing.data('isLeaf', element.data.isLeaf === true);
+					existing.data('sourceName', element.data.sourceName || null);
 					existing.classes(element.classes || '');
 					moveNode(existing, element.data.parent);
 					continue;
@@ -230,6 +233,7 @@ function buildElements(level) {
 			id: 'group:' + groupName,
 			label: props.label,
 			packageName: props.packageName,
+			sourceName: props.sourceName || null,
 			isGroup: true,
 			parent: props.parentGroupName ? ('group:' + props.parentGroupName) : undefined
 		}
@@ -242,6 +246,7 @@ function buildElements(level) {
 			label: props.label || componentName,
 			size: props.size,
 			packageName: props.packageName,
+			sourceName: props.sourceName || null,
 			isRootMarker: props.isRootMarker === true,
 			isLeaf: props.isLeaf === true,
 			parent: props.group ? ('group:' + props.group.name) : undefined

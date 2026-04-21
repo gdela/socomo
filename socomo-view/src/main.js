@@ -57,9 +57,11 @@ function socomo() {
 	let currentDiagram;
 	let currentKeyword = '';
 	let headerCollapsed = false;
+	let codemapSynchronized = hasCodemap();
 	const expandedLevels = [];
 
 	renderCurrentLevel();
+	waitForCodemap();
 
 	function renderCurrentLevel() {
 		updateNavigation();
@@ -102,10 +104,13 @@ function socomo() {
 		breadcrumb.appendChild(label);
 
 		for (const expandedLevel of expandedLevels) {
+			const expandedRef = parseExpandedLevelKey(expandedLevel);
 			const button = document.createElement('button');
 			button.type = 'button';
 			button.className = 'breadcrumb-item';
-			button.textContent = relativeLevelName(rootLevelName, expandedLevel);
+			button.textContent = expandedRef.sourceName
+				? `${expandedRef.sourceName} / ${relativeLevelName(rootLevelName, expandedRef.packageName)}`
+				: relativeLevelName(rootLevelName, expandedRef.packageName);
 			button.addEventListener('click', () => collapseExpandedLevel(expandedLevel));
 			breadcrumb.appendChild(button);
 		}
@@ -121,7 +126,7 @@ function socomo() {
 		const groups = {};
 
 		for (const packet of codemap.packages) {
-			const visibleComponent = visibleComponentForPackage(codemap, packet.fqn, levelName, expandedSet);
+			const visibleComponent = visibleComponentForPackage(codemap, packet, levelName, expandedSet);
 			if (!visibleComponent) continue;
 			componentSizes[visibleComponent.name] = (componentSizes[visibleComponent.name] || 0) + packet.size;
 			componentMeta[visibleComponent.name] = visibleComponent;
@@ -133,8 +138,8 @@ function socomo() {
 		const coverageIndex = buildCoverageIndex(componentMeta);
 
 		for (const packageDep of codemap.packageDeps) {
-			const fromComponent = mapPackageToVisibleComponent(packageDep.from.fqn, coverageIndex);
-			const toComponent = mapPackageToVisibleComponent(packageDep.to.fqn, coverageIndex);
+			const fromComponent = mapPackageToVisibleComponent(packageDep.from, coverageIndex);
+			const toComponent = mapPackageToVisibleComponent(packageDep.to, coverageIndex);
 			if (!fromComponent || !toComponent || fromComponent.name === toComponent.name) continue;
 			const dependencyName = fromComponent.name + ' -> ' + toComponent.name;
 			dependencyStrengths[dependencyName] = (dependencyStrengths[dependencyName] || 0) + packageDep.memberDeps.length;
@@ -156,6 +161,7 @@ function socomo() {
 				packageName: meta.packageName,
 				isRootMarker: meta.isRootMarker === true,
 				sourceName: meta.sourceName || null,
+				expansionKey: meta.expansionKey,
 				isLeaf
 			};
 			if (meta.group) {
@@ -179,11 +185,11 @@ function socomo() {
 		};
 	}
 
-	function visibleComponentForPackage(codemap, packageFqn, levelName, expandedSet) {
-		const packet = codemap.packages.find(candidate => candidate.fqn === packageFqn);
-		const sourceName = packet ? packet.sourceName : null;
+	function visibleComponentForPackage(codemap, packet, levelName, expandedSet) {
+		const packageFqn = packet.fqn;
 
 		if (packageFqn === levelName) {
+			const sourceName = findSourceNameForPackageTree(codemap, levelName);
 			return {
 				name: '[root]',
 				label: '[root]',
@@ -198,6 +204,7 @@ function socomo() {
 
 		const suffix = packageFqn.slice(levelPrefix.length);
 		if (!suffix) {
+			const sourceName = findSourceNameForPackageTree(codemap, levelName);
 			return {
 				name: '[root]',
 				label: '[root]',
@@ -214,56 +221,70 @@ function socomo() {
 		for (const [index, segment] of segments.entries()) {
 			visibleSegments.push(segment);
 			const absoluteLevel = appendLevel(levelName, visibleSegments.join('.'));
+			const splitBySource = shouldSplitPackageTreeBySource(codemap, absoluteLevel);
+			const sourceName = splitBySource ? packet.sourceName : findSourceNameForPackageTree(codemap, absoluteLevel);
+			const visibleName = scopedVisibleName(visibleSegments.join('.'), sourceName, splitBySource);
+			const parentVisibleName = scopedVisibleName(visibleSegments.slice(0, -1).join('.'), sourceName, splitBySource);
+			const expansionKey = expandedLevelKey(absoluteLevel, splitBySource ? sourceName : null);
 			const hasMoreSegments = index < segments.length - 1;
-			const isExpandedLevel = expandedSet.has(absoluteLevel);
-			const hasChildren = hasChildPackages(codemap, absoluteLevel);
+			const isExpandedLevel = expandedSet.has(expansionKey);
+			const hasChildren = hasChildPackages(codemap, absoluteLevel, splitBySource ? sourceName : null);
 			const isExpandedParentPackage = isExpandedLevel && hasChildren && !hasMoreSegments;
 			if (isExpandedParentPackage) {
 				return {
-					name: visibleSegments.join('.') + '.[root]',
+					name: visibleName + '.[root]',
 					label: '[root]',
 					packageName: absoluteLevel,
 					isRootMarker: true,
 					sourceName,
+					expansionKey,
 					group: {
-						name: visibleSegments.join('.'),
+						name: visibleName,
 						label: lastSegment(visibleSegments.join('.')),
 						packageName: absoluteLevel,
-						sourceName
+						sourceName,
+						expansionKey
 					}
 				};
 			}
 			if (!isExpandedLevel || !hasMoreSegments) {
 				return {
-					name: visibleSegments.join('.'),
+					name: visibleName,
 					label: lastSegment(visibleSegments.join('.')),
 					packageName: absoluteLevel,
 					isRootMarker: false,
 					sourceName,
+					expansionKey,
 					group: visibleSegments.length > 1
 						? {
-							name: visibleSegments.slice(0, -1).join('.'),
+							name: parentVisibleName,
 							label: lastSegment(visibleSegments.slice(0, -1).join('.')),
 							packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.')),
-							sourceName
+							sourceName,
+							expansionKey: expandedLevelKey(appendLevel(levelName, visibleSegments.slice(0, -1).join('.')), splitBySource ? sourceName : null)
 						}
 						: null
 				};
 			}
 		}
 
+		const absoluteLevel = appendLevel(levelName, visibleSegments.join('.'));
+		const splitBySource = shouldSplitPackageTreeBySource(codemap, absoluteLevel);
+		const sourceName = splitBySource ? packet.sourceName : findSourceNameForPackageTree(codemap, absoluteLevel);
 		return {
-			name: visibleSegments.join('.'),
+			name: scopedVisibleName(visibleSegments.join('.'), sourceName, splitBySource),
 			label: lastSegment(visibleSegments.join('.')),
-			packageName: appendLevel(levelName, visibleSegments.join('.')),
+			packageName: absoluteLevel,
 			isRootMarker: false,
 			sourceName,
+			expansionKey: expandedLevelKey(absoluteLevel, splitBySource ? sourceName : null),
 			group: visibleSegments.length > 1
 				? {
-					name: visibleSegments.slice(0, -1).join('.'),
+					name: scopedVisibleName(visibleSegments.slice(0, -1).join('.'), sourceName, splitBySource),
 					label: lastSegment(visibleSegments.slice(0, -1).join('.')),
 					packageName: appendLevel(levelName, visibleSegments.slice(0, -1).join('.')),
-					sourceName
+					sourceName,
+					expansionKey: expandedLevelKey(appendLevel(levelName, visibleSegments.slice(0, -1).join('.')), splitBySource ? sourceName : null)
 				}
 				: null
 		};
@@ -299,8 +320,8 @@ function socomo() {
 					matchesKeyword(memberDep.to.className, normalizedKeyword) ||
 					matchesKeyword(memberDep.to.memberName, normalizedKeyword)
 				) {
-					const compFrom = mapPackageToVisibleComponent(pkg.from.fqn, coverageIndex);
-					const compTo = mapPackageToVisibleComponent(pkg.to.fqn, coverageIndex);
+					const compFrom = mapPackageToVisibleComponent(pkg.from, coverageIndex);
+					const compTo = mapPackageToVisibleComponent(pkg.to, coverageIndex);
 					if (compFrom && compTo) {
 						matchedPairs.add(JSON.stringify({from: compFrom.name, to: compTo.name}));
 						componentSet.add(compFrom.name);
@@ -350,6 +371,19 @@ function socomo() {
 		renderCurrentLevel();
 	}
 
+	function waitForCodemap() {
+		if (codemapSynchronized) return;
+		const synchronize = () => {
+			if (!hasCodemap()) {
+				window.setTimeout(synchronize, 50);
+				return;
+			}
+			codemapSynchronized = true;
+			renderCurrentLevel();
+		};
+		window.setTimeout(synchronize, 50);
+	}
+
 	searchButton.addEventListener('click', performSearch);
 	searchInput.addEventListener('keydown', event => {
 		if (event.key === 'Enter') performSearch();
@@ -377,26 +411,30 @@ function socomo() {
 	updateHeaderState();
 
 	function collapseExpandedLevel(levelName) {
-		const levelPrefix = levelName + '.';
+		const target = parseExpandedLevelKey(levelName);
 		for (let i = expandedLevels.length - 1; i >= 0; i--) {
-			if (expandedLevels[i] === levelName || expandedLevels[i].startsWith(levelPrefix)) {
+			const candidate = parseExpandedLevelKey(expandedLevels[i]);
+			const sameSource = candidate.sourceName === target.sourceName;
+			const sameLevel = candidate.packageName === target.packageName;
+			const nestedLevel = candidate.packageName.startsWith(target.packageName + '.');
+			if (sameSource && (sameLevel || nestedLevel)) {
 				expandedLevels.splice(i, 1);
 			}
 		}
 		renderCurrentLevel();
 	}
 
-	function onDependencySelected(fromComponent, toComponent) {
+	function onDependencySelected(fromComponent, toComponent, fromSourceName, toSourceName) {
 		if (hasCodemap()) {
 			console.info('selected dependency %s -> %s', fromComponent, toComponent);
-			drawTable(mainTable, getCodemap(), fromComponent, toComponent, currentKeyword);
+			drawTable(mainTable, getCodemap(), fromComponent, toComponent, currentKeyword, fromSourceName, toSourceName);
 			mainTable.style.display = 'flex';
 		} else {
 			console.warn('socomo.data not yet loaded or completely missing');
 		}
 	}
 
-	function onComponentSelected(packageName, isRootMarker) {
+	function onComponentSelected(packageName, isRootMarker, sourceName) {
 		if (!hasCodemap()) {
 			console.warn('socomo.data not yet loaded or completely missing');
 			return;
@@ -405,33 +443,36 @@ function socomo() {
 
 		if (isRootMarker) {
 			const rootComponentName = packageName ? `${packageName}.[root]` : '[root]';
-			drawClassList(mainTable, getCodemap(), rootComponentName, currentKeyword);
+			drawClassList(mainTable, getCodemap(), rootComponentName, currentKeyword, sourceName);
 			mainTable.style.display = 'flex';
 			return;
 		}
 		if (packageName === rootLevelName) return;
 
 		const absoluteLevel = packageName;
-		if (!hasChildPackages(getCodemap(), absoluteLevel)) {
-			drawClassList(mainTable, getCodemap(), absoluteLevel, currentKeyword);
+		if (!hasChildPackages(getCodemap(), absoluteLevel, sourceName)) {
+			drawClassList(mainTable, getCodemap(), absoluteLevel, currentKeyword, sourceName);
 			mainTable.style.display = 'flex';
 			return;
 		}
 
-		const existingIndex = expandedLevels.indexOf(absoluteLevel);
+		const currentLevelKey = expandedLevelKey(absoluteLevel, shouldSplitPackageTreeBySource(getCodemap(), absoluteLevel) ? sourceName : null);
+		const existingIndex = expandedLevels.indexOf(currentLevelKey);
 		if (existingIndex !== -1) {
-			collapseExpandedLevel(absoluteLevel);
+			collapseExpandedLevel(currentLevelKey);
 			return;
 		}
 
-		expandedLevels.push(absoluteLevel);
+		expandedLevels.push(currentLevelKey);
 		renderCurrentLevel();
 	}
 
-	function hasChildPackages(codemap, levelName) {
+	function hasChildPackages(codemap, levelName, sourceName = null) {
 		if (!codemap || !codemap.packages) return false;
 		const prefix = levelName === '' ? '' : (levelName + '.');
 		return codemap.packages.some(packet =>
+			(sourceName == null || packet.sourceName === sourceName)
+			&&
 			packet.fqn !== levelName
 			&& packet.fqn.startsWith(prefix)
 		);
@@ -449,8 +490,8 @@ function socomo() {
 			for (const segment of segments) {
 				pathSegments.push(segment);
 				const absoluteLevel = appendLevel(levelName, pathSegments.join('.'));
-				if (hasChildPackages(codemap, absoluteLevel)) {
-					levels.add(absoluteLevel);
+				if (hasChildPackages(codemap, absoluteLevel, shouldSplitPackageTreeBySource(codemap, absoluteLevel) ? packet.sourceName : null)) {
+					levels.add(expandedLevelKey(absoluteLevel, shouldSplitPackageTreeBySource(codemap, absoluteLevel) ? packet.sourceName : null));
 				}
 			}
 		}
@@ -459,6 +500,24 @@ function socomo() {
 
 	function matchesKeyword(value, normalizedKeyword) {
 		return value != null && value.toLowerCase().includes(normalizedKeyword);
+	}
+
+	function findSourceNameForPackageTree(codemap, packageFqn) {
+		if (!codemap || !codemap.packages) return null;
+		const exactMatch = codemap.packages.find(candidate => candidate.fqn === packageFqn && candidate.sourceName);
+		if (exactMatch) return exactMatch.sourceName;
+		const prefix = packageFqn ? (packageFqn + '.') : '';
+		const sourceNames = new Set();
+		for (const packet of codemap.packages) {
+			if (!packet.sourceName) continue;
+			if (packet.fqn === packageFqn || packet.fqn.startsWith(prefix)) {
+				sourceNames.add(packet.sourceName);
+				if (sourceNames.size > 1) {
+					return null;
+				}
+			}
+		}
+		return sourceNames.size === 1 ? Array.from(sourceNames)[0] : null;
 	}
 
 	function appendLevel(levelName, suffix) {
@@ -502,7 +561,8 @@ function socomo() {
 					: lastSegment(groupName),
 				packageName,
 				parentGroupName: i > 0 ? segments.slice(0, i).join('.') : null,
-				sourceName: group.sourceName || null
+				sourceName: group.sourceName || null,
+				expansionKey: group.expansionKey || expandedLevelKey(packageName, group.sourceName)
 			};
 		}
 	}
@@ -511,23 +571,58 @@ function socomo() {
 		return Object.entries(components).map(([name, props]) => ({
 			name,
 			packageName: props.packageName,
+			sourceName: props.sourceName || null,
 			exactOnly: props.isRootMarker === true
 		})).sort((left, right) => right.packageName.length - left.packageName.length);
 	}
 
-	function mapPackageToVisibleComponent(packageFqn, coverageIndex) {
+	function mapPackageToVisibleComponent(packet, coverageIndex) {
 		for (const coverage of coverageIndex) {
+			if (coverage.sourceName && packet.sourceName !== coverage.sourceName) continue;
 			if (coverage.exactOnly) {
-				if (packageFqn === coverage.packageName) {
+				if (packet.fqn === coverage.packageName) {
 					return coverage;
 				}
 				continue;
 			}
-			if (packageFqn === coverage.packageName || packageFqn.startsWith(coverage.packageName + '.')) {
+			if (packet.fqn === coverage.packageName || packet.fqn.startsWith(coverage.packageName + '.')) {
 				return coverage;
 			}
 		}
 		return null;
+	}
+
+	function shouldSplitPackageTreeBySource(codemap, packageName) {
+		return collectSourceNamesForPackageTree(codemap, packageName).length > 1;
+	}
+
+	function collectSourceNamesForPackageTree(codemap, packageName) {
+		if (!codemap || !codemap.packages) return [];
+		const prefix = packageName ? (packageName + '.') : '';
+		const sourceNames = new Set();
+		for (const packet of codemap.packages) {
+			if (!packet.sourceName) continue;
+			if (packet.fqn === packageName || packet.fqn.startsWith(prefix)) {
+				sourceNames.add(packet.sourceName);
+			}
+		}
+		return Array.from(sourceNames).sort();
+	}
+
+	function expandedLevelKey(packageName, sourceName) {
+		return `${sourceName || ''}::${packageName}`;
+	}
+
+	function parseExpandedLevelKey(key) {
+		const separatorIndex = key.indexOf('::');
+		return {
+			sourceName: separatorIndex > 0 ? key.slice(0, separatorIndex) : '',
+			packageName: separatorIndex >= 0 ? key.slice(separatorIndex + 2) : key
+		};
+	}
+
+	function scopedVisibleName(baseName, sourceName, splitBySource) {
+		return splitBySource && sourceName ? `${baseName}@@${sourceName}` : baseName;
 	}
 
 	Mousetrap.bind('esc', () => {

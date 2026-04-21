@@ -43,6 +43,7 @@ public class CodePackage implements Comparable<CodePackage> {
 		this.fqn = notNull(fqn);
 	}
 
+	@JsonProperty
 	public Collection<CodeMember> members() {
 		return members.values();
 	}

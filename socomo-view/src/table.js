@@ -8,23 +8,23 @@ import './table.scss';
 export default drawTable;
 export { drawClassList };
 
-function drawTable(tableContainer, codemap, fromComponentName, toComponentName, keyword) {
-	const filteredDeps = filterAndRelativize(codemap.packageDeps, fromComponentName, toComponentName);
+function drawTable(tableContainer, codemap, fromComponentName, toComponentName, keyword, fromSourceName = null, toSourceName = null) {
+	const filteredDeps = filterAndRelativize(codemap.packageDeps, fromComponentName, toComponentName, fromSourceName, toSourceName);
 	const table = createTable(filteredDeps, codemap, fromComponentName, toComponentName, keyword);
 	tableContainer.innerHTML = '';
 	tableContainer.appendChild(table);
 	return table;
 }
 
-function drawClassList(tableContainer, codemap, componentName, keyword) {
-	const classes = listClasses(codemap, componentName, keyword);
-	const panel = createClassList(classes, codemap, componentName, keyword);
+function drawClassList(tableContainer, codemap, componentName, keyword, sourceName = null) {
+	const classes = listClasses(codemap, componentName, keyword, sourceName);
+	const panel = createClassList(classes, codemap, componentName, keyword, sourceName);
 	tableContainer.innerHTML = '';
 	tableContainer.appendChild(panel);
 	return panel;
 }
 
-function filterAndRelativize(packageDeps, fromComponentName, toComponentName) {
+function filterAndRelativize(packageDeps, fromComponentName, toComponentName, fromSourceName, toSourceName) {
 	const trimRoot = (componentName) => componentName.replace('.[root]', '').replace('[root]', '');
 	const belongsTo = (componentName, packet) => {
 		if (componentName.endsWith('[root]')) {
@@ -35,6 +35,9 @@ function filterAndRelativize(packageDeps, fromComponentName, toComponentName) {
 	};
 	return packageDeps
 		.filter(packageDep =>
+			(!fromSourceName || packageDep.from.sourceName === fromSourceName)
+			&& (!toSourceName || packageDep.to.sourceName === toSourceName)
+			&&
 			belongsTo(fromComponentName, packageDep.from)
 			&& belongsTo(toComponentName, packageDep.to)
 		)
@@ -43,10 +46,12 @@ function filterAndRelativize(packageDeps, fromComponentName, toComponentName) {
 				...packageDep,
 				from: {
 					fqn: packageDep.from.fqn,
+					sourceName: packageDep.from.sourceName || null,
 					relativeName: packageDep.from.fqn.replace(trimRoot(fromComponentName), '')
 				},
 				to: {
 					fqn: packageDep.to.fqn,
+					sourceName: packageDep.to.sourceName || null,
 					relativeName: packageDep.to.fqn.replace(trimRoot(toComponentName), '')
 				}
 			};
@@ -73,11 +78,13 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 				const row = tbody.insertRow();
 				appendClassCell(row.insertCell(), {
 					packageFqn: packageDep.from.fqn,
+					sourceName: packageDep.from.sourceName,
 					className: memberDep.from.className,
 					label: fromPackageAndClassName(packageDep, memberDep)
 				});
 				appendMemberCell(row.insertCell(), {
 					packageFqn: packageDep.from.fqn,
+					sourceName: packageDep.from.sourceName,
 					className: memberDep.from.className,
 					memberName: memberDep.from.memberName,
 					label: fromMemberName(memberDep)
@@ -85,12 +92,14 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 				appendArrowCell(row.insertCell(), memberDep);
 				appendMemberCell(row.insertCell(), {
 					packageFqn: packageDep.to.fqn,
+					sourceName: packageDep.to.sourceName,
 					className: memberDep.to.className,
 					memberName: memberDep.to.memberName,
 					label: toMemberName(memberDep)
 				});
 				appendClassCell(row.insertCell(), {
 					packageFqn: packageDep.to.fqn,
+					sourceName: packageDep.to.sourceName,
 					className: memberDep.to.className,
 					label: toPackageAndClassName(packageDep, memberDep)
 				});
@@ -121,6 +130,7 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 		if (!trigger) return;
 		const target = {
 			packageFqn: trigger.dataset.packageFqn,
+			sourceName: trigger.dataset.sourceName || null,
 			className: trigger.dataset.className,
 			memberName: trigger.dataset.memberName || null
 		};
@@ -129,19 +139,20 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 	return tableWrapper;
 }
 
-function listClasses(codemap, componentName, keyword) {
+function listClasses(codemap, componentName, keyword, sourceName = null) {
 	const trimRoot = componentName.replace('.[root]', '').replace('[root]', '');
 	const normalizedKeyword = keyword ? keyword.toLowerCase() : '';
 	const classes = new Map();
 
 	for (const packet of codemap.packages || []) {
+		if (sourceName && packet.sourceName !== sourceName) continue;
 		const packetMembers = packet.members || [];
 		const belongsTo = componentName.endsWith('[root]')
 			? packet.fqn === trimRoot
 			: packet.fqn === trimRoot || packet.fqn.startsWith(trimRoot + '.');
 		if (!belongsTo) continue;
 		for (const member of packetMembers) {
-			addClassEntry(classes, packet.fqn, member.className, normalizedKeyword);
+			addClassEntry(classes, packet.fqn, packet.sourceName || null, member.className, normalizedKeyword);
 		}
 	}
 
@@ -150,17 +161,18 @@ function listClasses(codemap, componentName, keyword) {
 	}
 
 	for (const packageDep of codemap.packageDeps || []) {
-		collectClassesFromMember(packageDep.from.fqn, packageDep.memberDeps, 'from', componentName, trimRoot, normalizedKeyword, classes);
-		collectClassesFromMember(packageDep.to.fqn, packageDep.memberDeps, 'to', componentName, trimRoot, normalizedKeyword, classes);
+		collectClassesFromMember(packageDep.from, packageDep.memberDeps, 'from', componentName, trimRoot, normalizedKeyword, classes, sourceName);
+		collectClassesFromMember(packageDep.to, packageDep.memberDeps, 'to', componentName, trimRoot, normalizedKeyword, classes, sourceName);
 	}
 
 	return Array.from(classes.values()).sort((left, right) => left.fullClassName.localeCompare(right.fullClassName));
 }
 
-function collectClassesFromMember(packageFqn, memberDeps, side, componentName, trimRoot, normalizedKeyword, classes) {
-	if (!belongsToComponent(componentName, trimRoot, packageFqn)) return;
+function collectClassesFromMember(packet, memberDeps, side, componentName, trimRoot, normalizedKeyword, classes, sourceName) {
+	if (sourceName && packet.sourceName !== sourceName) return;
+	if (!belongsToComponent(componentName, trimRoot, packet.fqn)) return;
 	for (const memberDep of memberDeps || []) {
-		addClassEntry(classes, packageFqn, memberDep[side].className, normalizedKeyword);
+		addClassEntry(classes, packet.fqn, packet.sourceName || null, memberDep[side].className, normalizedKeyword);
 	}
 }
 
@@ -170,22 +182,25 @@ function belongsToComponent(componentName, trimRoot, packageFqn) {
 		: packageFqn === trimRoot || packageFqn.startsWith(trimRoot + '.');
 }
 
-function addClassEntry(classes, packageFqn, className, normalizedKeyword) {
+function addClassEntry(classes, packageFqn, sourceName, className, normalizedKeyword) {
 	if (!className) return;
 	const fullClassName = packageFqn ? `${packageFqn}.${className}` : className;
+	const entryKey = `${sourceName || ''}::${fullClassName}`;
 	if (normalizedKeyword && !fullClassName.toLowerCase().includes(normalizedKeyword)) return;
-	classes.set(fullClassName, {
+	classes.set(entryKey, {
 		packageFqn,
+		sourceName,
 		className,
 		fullClassName
 	});
 }
 
-function listMethods(codemap, packageFqn, className, keyword) {
+function listMethods(codemap, packageFqn, className, keyword, sourceName = null) {
 	const normalizedKeyword = keyword ? keyword.toLowerCase() : '';
 	const methods = new Set();
 
 	for (const packet of codemap.packages || []) {
+		if (sourceName && packet.sourceName !== sourceName) continue;
 		if (packet.fqn !== packageFqn) continue;
 		for (const member of packet.members || []) {
 			if (member.className !== className || !isMethodName(member.memberName)) continue;
@@ -199,15 +214,16 @@ function listMethods(codemap, packageFqn, className, keyword) {
 	}
 
 	for (const packageDep of codemap.packageDeps || []) {
-		collectMethodsFromMember(packageDep.from.fqn, packageDep.memberDeps, 'from', packageFqn, className, normalizedKeyword, methods);
-		collectMethodsFromMember(packageDep.to.fqn, packageDep.memberDeps, 'to', packageFqn, className, normalizedKeyword, methods);
+		collectMethodsFromMember(packageDep.from, packageDep.memberDeps, 'from', packageFqn, className, normalizedKeyword, methods, sourceName);
+		collectMethodsFromMember(packageDep.to, packageDep.memberDeps, 'to', packageFqn, className, normalizedKeyword, methods, sourceName);
 	}
 
 	return Array.from(methods).sort();
 }
 
-function collectMethodsFromMember(memberPackageFqn, memberDeps, side, packageFqn, className, normalizedKeyword, methods) {
-	if (memberPackageFqn !== packageFqn) return;
+function collectMethodsFromMember(packet, memberDeps, side, packageFqn, className, normalizedKeyword, methods, sourceName) {
+	if (sourceName && packet.sourceName !== sourceName) return;
+	if (packet.fqn !== packageFqn) return;
 	for (const memberDep of memberDeps || []) {
 		const member = memberDep[side];
 		if (member.className !== className || !isMethodName(member.memberName)) continue;
@@ -249,6 +265,7 @@ function createClassList(classes, codemap, componentName, keyword) {
 		button.type = 'button';
 		button.className = 'trace-link class-list-link';
 		button.dataset.packageFqn = entry.packageFqn;
+		button.dataset.sourceName = entry.sourceName || '';
 		button.dataset.className = entry.className;
 		button.textContent = entry.className;
 		cell.appendChild(button);
@@ -263,7 +280,7 @@ function createClassList(classes, codemap, componentName, keyword) {
 	table.appendChild(tbody);
 	classListPane.appendChild(table);
 	classLayout.appendChild(classListPane);
-	methodListPane.appendChild(createMethodListContent([], null));
+	methodListPane.appendChild(createMethodListContent([], null, null, null));
 	classLayout.appendChild(methodListPane);
 	tablePane.appendChild(classLayout);
 	tableWrapper.appendChild(tablePane);
@@ -292,8 +309,9 @@ function createClassList(classes, codemap, componentName, keyword) {
 			selectedClassButton.classList.add('selected-class');
 			selectedMethodButton = null;
 			const methodPanel = createMethodListContent(
-				listMethods(codemap, classTrigger.dataset.packageFqn, classTrigger.dataset.className, keyword),
+				listMethods(codemap, classTrigger.dataset.packageFqn, classTrigger.dataset.className, keyword, classTrigger.dataset.sourceName || null),
 				classTrigger.dataset.packageFqn,
+				classTrigger.dataset.sourceName || null,
 				classTrigger.dataset.className
 			);
 			methodListPane.innerHTML = '';
@@ -315,6 +333,7 @@ function createClassList(classes, codemap, componentName, keyword) {
 		}
 		renderCallTrace(tracePanel, traceToTop(reverseGraph, {
 			packageFqn: traceTrigger.dataset.packageFqn,
+			sourceName: traceTrigger.dataset.sourceName || null,
 			className: traceTrigger.dataset.className,
 			memberName: traceTrigger.dataset.memberName || null
 		}));
@@ -323,7 +342,7 @@ function createClassList(classes, codemap, componentName, keyword) {
 	return tableWrapper;
 }
 
-function createMethodListContent(methods, packageFqn, className) {
+function createMethodListContent(methods, packageFqn, sourceName, className) {
 	const container = document.createElement('div');
 	container.className = 'method-list-content';
 	const table = document.createElement('table');
@@ -339,6 +358,7 @@ function createMethodListContent(methods, packageFqn, className) {
 		button.type = 'button';
 		button.className = 'trace-link method-list-link';
 		button.dataset.packageFqn = packageFqn;
+		button.dataset.sourceName = sourceName || '';
 		button.dataset.className = className;
 		button.dataset.memberName = method;
 		button.textContent = method;
@@ -416,7 +436,7 @@ function setupVerticalResize(wrapper, tablePane, tracePanel, splitHandle) {
 }
 
 function appendClassCell(cell, symbol) {
-	appendTraceLink(cell, symbol.label, symbol.packageFqn, symbol.className, null);
+	appendTraceLink(cell, symbol.label, symbol.packageFqn, symbol.sourceName, symbol.className, null);
 }
 
 function appendMemberCell(cell, symbol) {
@@ -424,14 +444,15 @@ function appendMemberCell(cell, symbol) {
 		cell.innerHTML = symbol.label;
 		return;
 	}
-	appendTraceLink(cell, symbol.label, symbol.packageFqn, symbol.className, symbol.memberName);
+	appendTraceLink(cell, symbol.label, symbol.packageFqn, symbol.sourceName, symbol.className, symbol.memberName);
 }
 
-function appendTraceLink(cell, label, packageFqn, className, memberName) {
+function appendTraceLink(cell, label, packageFqn, sourceName, className, memberName) {
 	const button = document.createElement('button');
 	button.type = 'button';
 	button.className = 'trace-link';
 	button.dataset.packageFqn = packageFqn;
+	button.dataset.sourceName = sourceName || '';
 	button.dataset.className = className;
 	if (memberName) {
 		button.dataset.memberName = memberName;
@@ -458,17 +479,20 @@ function buildReverseCallGraph(codemap) {
 			if (!memberDep.from.memberName) continue;
 			const caller = normalizeRef({
 				packageFqn: packageDep.from.fqn,
+				sourceName: packageDep.from.sourceName || null,
 				className: memberDep.from.className,
 				memberName: memberDep.from.memberName
 			});
 			addIncoming(incomingByTarget, toKey({
 				packageFqn: packageDep.to.fqn,
+				sourceName: packageDep.to.sourceName || null,
 				className: memberDep.to.className,
 				memberName: null
 			}), caller, memberDep.inLoop === true);
 			if (memberDep.to.memberName) {
 				addIncoming(incomingByTarget, toKey({
 					packageFqn: packageDep.to.fqn,
+					sourceName: packageDep.to.sourceName || null,
 					className: memberDep.to.className,
 					memberName: memberDep.to.memberName
 				}), caller, memberDep.inLoop === true);
@@ -569,6 +593,7 @@ function renderCallTrace(tracePanel, result) {
 function normalizeRef(ref) {
 	return {
 		packageFqn: ref.packageFqn,
+		sourceName: ref.sourceName || null,
 		className: ref.className,
 		memberName: ref.memberName || null
 	};
@@ -641,6 +666,7 @@ function createTraceButton(ref) {
 	button.type = 'button';
 	button.className = 'trace-link trace-node-link';
 	button.dataset.packageFqn = ref.packageFqn;
+	button.dataset.sourceName = ref.sourceName || '';
 	button.dataset.className = ref.className;
 	if (ref.memberName) {
 		button.dataset.memberName = ref.memberName;
@@ -661,11 +687,11 @@ function createTraceButton(ref) {
 }
 
 function toKey(ref) {
-	return [ref.packageFqn, ref.className, ref.memberName || ''].join('#');
+	return [ref.sourceName || '', ref.packageFqn, ref.className, ref.memberName || ''].join('#');
 }
 
 function formatRef(ref) {
-	return [ref.packageFqn, ref.className, ref.memberName].filter(x => x).join('.');
+	return [ref.sourceName, ref.packageFqn, ref.className, ref.memberName].filter(x => x).join('.');
 }
 
 function formatCompactRef(ref) {
