@@ -23,7 +23,9 @@ See example of how Socomo represents the structure of the Guava project ([full e
 [socomo of guava]: https://gdela.pl/socomo-of-guava/socomo.html
 
 
-## Quick Start
+## User Guide
+
+### Quick Start
 
 Try it now on your code! For a project build with maven do this:
 
@@ -68,6 +70,15 @@ To track changes to the composition commit the `socomo.html` file to your source
 and add [socomo maven plugin](#socomo-maven-plugin) to your project. Whenever composition changes
 the plugin updates this human-readable file, so you'll have a history of changes in the most
 convenient place - in your source code repository.
+
+### Generated Files
+
+Socomo normally generates:
+
+- `socomo.html` - the interactive viewer entry page
+- `socomo.data` - detailed code map data loaded by the page
+
+If you use `--local-assets`, keep the required js/css files next to `socomo.html` as listed above.
 
 
 ## How to Read Diagrams
@@ -187,24 +198,7 @@ but can lack some features. To use [socomo maven plugin](#socomo-maven-plugin), 
 | 2.4.x  | from 8 to 23            | at least 3.2.5   |
 | 2.3.x  | from 7 to 15            | at least 3.2.5   |
 
-If you use other build tools, like Gradle or Sbt, you can use [socomo standalone](#socomo-standalone),
-or you can write a plugin and contribute it to this project.
-
-## Contributing
-
-Raise an [issue or enhancement request](https://github.com/gdela/socomo/issues),
-or better yet a [pull request](https://github.com/gdela/socomo/pulls).
-Contact me at [wojciech@gdela.pl]() or [@WojciechGdela](https://twitter.com/WojciechGdela).
-
-To develop Socomo you need [Maven] and [Node/Npm] installed on your machine. Then:
-1. Run `mvn install` to install a snapshot version of Socomo in your local maven repository.
-2. Use [socomo maven plugin](#socomo-maven-plugin) with the snapshot version
-   or [socomo standalone](#socomo-standalone) from `socomo-core/target` directory
-   to produce a `socomo.html` file.
-3. Optionally you can use the `dogfood.sh` or `catfood.sh` scripts that perform both of the above at once.
-4. Run `npm --prefix socomo-view run serve` to start serving `*.js` and `*.css` asset files.
-5. Open the generated `socomo.html` file in the browser. Assets can be developed in-place, the browser
-   will automatically reload them.
+If you use other build tools, like Gradle or Sbt, use [socomo standalone](#socomo-standalone).
 
 
 ## Alternatives

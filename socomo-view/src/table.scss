@@ -3,9 +3,26 @@
 	flex-direction: column;
 	border: 5px solid #d0e0ec;
 	background: #fafafa;
+	width: 1100px;
+	height: 720px;
 	max-height: 100%;
 	max-width: 100%;
 	min-height: 0;
+	min-width: 480px;
+	overflow: hidden;
+	position: relative;
+}
+
+.table-resize-handle {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	width: 16px;
+	height: 16px;
+	cursor: move;
+	background:
+		linear-gradient(135deg, transparent 0 45%, #9fb7c8 45% 55%, transparent 55%),
+		linear-gradient(135deg, transparent 0 62%, #9fb7c8 62% 72%, transparent 72%);
 }
 
 #table-pane {
@@ -129,6 +146,11 @@ table > tbody > {
 
 body.is-resizing-table {
 	cursor: ns-resize;
+	user-select: none;
+}
+
+body.is-resizing-panel {
+	cursor: move;
 	user-select: none;
 }
 

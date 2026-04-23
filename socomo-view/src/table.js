@@ -6,7 +6,7 @@
 import './table.scss';
 
 export default drawTable;
-export { drawClassList };
+export { drawClassList, buildDependencyExport };
 
 function drawTable(tableContainer, codemap, fromComponentName, toComponentName, keyword, fromSourceName = null, toSourceName = null) {
 	const filteredDeps = filterAndRelativize(codemap.packageDeps, fromComponentName, toComponentName, fromSourceName, toSourceName);
@@ -22,6 +22,42 @@ function drawClassList(tableContainer, codemap, componentName, keyword, sourceNa
 	tableContainer.innerHTML = '';
 	tableContainer.appendChild(panel);
 	return panel;
+}
+
+function buildDependencyExport(codemap, level, keyword) {
+	const keywords = normalizeKeywords(keyword);
+	const sheets = [];
+	const keywordGroups = keywords.length > 0 ? keywords : [null];
+	const usedSheetNames = new Set();
+
+	for (const keywordItem of keywordGroups) {
+		const rows = [];
+		for (const dependencyName of Object.keys(level.dependencies || {})) {
+			const [fromComponentName, toComponentName] = dependencyName.split(' -> ');
+			const fromComponent = level.components[fromComponentName];
+			const toComponent = level.components[toComponentName];
+			if (!fromComponent || !toComponent) continue;
+			rows.push(...dependencyRows(
+				codemap,
+				componentFilterName(fromComponent),
+				componentFilterName(toComponent),
+				keywordItem ? [keywordItem] : keywords,
+				fromComponent.sourceName || null,
+				toComponent.sourceName || null,
+				componentLabel(fromComponent, fromComponentName),
+				componentLabel(toComponent, toComponentName)
+			));
+		}
+		sheets.push({
+			name: buildSheetName(keywordItem ? keywordItem.raw : 'Dependencies', usedSheetNames),
+			rows
+		});
+	}
+
+	return {
+		filename: 'socomo-dependencies.xls',
+		content: renderExcelWorkbook(sheets)
+	};
 }
 
 function filterAndRelativize(packageDeps, fromComponentName, toComponentName, fromSourceName, toSourceName) {
@@ -58,7 +94,68 @@ function filterAndRelativize(packageDeps, fromComponentName, toComponentName, fr
 		});
 }
 
+function dependencyRows(codemap, fromComponentName, toComponentName, keyword, fromSourceName, toSourceName, fromComponentLabel, toComponentLabel) {
+	const packageDeps = filterAndRelativize(codemap.packageDeps, fromComponentName, toComponentName, fromSourceName, toSourceName);
+	const keywords = normalizeKeywords(keyword);
+	const rows = [];
+	for (const packageDep of packageDeps) {
+		for (const memberDep of packageDep.memberDeps) {
+			if (!matchesDependencyKeyword(packageDep, memberDep, keywords)) continue;
+			rows.push({
+				fromComponent: fromComponentLabel,
+				fromClass: fromPackageAndClassName(packageDep, memberDep),
+				fromMember: fromMemberName(memberDep),
+				dependency: memberDep.inLoop ? '-> 循环' : '->',
+				toMember: plainText(toMemberName(memberDep)),
+				toClass: toPackageAndClassName(packageDep, memberDep),
+				toComponent: toComponentLabel
+			});
+		}
+	}
+	return rows;
+}
+
+function matchesDependencyKeyword(packageDep, memberDep, keywords) {
+	return keywords.length === 0 ||
+		matchesAnyKeyword(packageDep.from.fqn, keywords) ||
+		matchesAnyKeyword(packageDep.to.fqn, keywords) ||
+		matchesAnyKeyword(packageDep.from.sourceName, keywords) ||
+		matchesAnyKeyword(packageDep.to.sourceName, keywords) ||
+		matchesAnyKeyword(memberDep.from.className, keywords) ||
+		matchesAnyKeyword(memberDep.from.memberName, keywords) ||
+		matchesAnyKeyword(memberDep.to.className, keywords) ||
+		matchesAnyKeyword(memberDep.to.memberName, keywords);
+}
+
+function normalizeKeywords(keywordInput) {
+	if (Array.isArray(keywordInput)) {
+		return keywordInput
+			.map(keyword => typeof keyword === 'string'
+				? {raw: keyword, normalized: keyword.toLowerCase()}
+				: {
+					raw: String(keyword.raw || keyword.normalized || ''),
+					normalized: String(keyword.normalized || keyword.raw || '').toLowerCase()
+				})
+			.filter(keyword => keyword.normalized);
+	}
+	const seen = new Set();
+	const keywords = [];
+	for (const rawKeyword of String(keywordInput || '').split(/[\s,，;；]+/)) {
+		const raw = rawKeyword.trim();
+		const normalized = raw.toLowerCase();
+		if (!normalized || seen.has(normalized)) continue;
+		seen.add(normalized);
+		keywords.push({raw, normalized});
+	}
+	return keywords;
+}
+
+function matchesAnyKeyword(value, keywords) {
+	return value != null && keywords.some(keyword => String(value).toLowerCase().includes(keyword.normalized));
+}
+
 function createTable(packageDeps, codemap, fromComponentName, toComponentName, keyword) {
+	const keywords = normalizeKeywords(keyword);
 	const thead = document.createElement('thead');
 	thead.insertRow().innerHTML = `
 		<th colspan="2">${fromComponentName}</th>
@@ -69,12 +166,7 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 	const reverseGraph = buildReverseCallGraph(codemap);
 	for (const packageDep of packageDeps) {
 		for (const memberDep of packageDep.memberDeps) {
-			if (!keyword ||
-				(memberDep.from.className && memberDep.from.className.includes(keyword)) ||
-				(memberDep.from.memberName && memberDep.from.memberName.includes(keyword)) ||
-				(memberDep.to.className && memberDep.to.className.includes(keyword)) ||
-				(memberDep.to.memberName && memberDep.to.memberName.includes(keyword))
-			) {
+			if (matchesDependencyKeyword(packageDep, memberDep, keywords)) {
 				const row = tbody.insertRow();
 				appendClassCell(row.insertCell(), {
 					packageFqn: packageDep.from.fqn,
@@ -123,7 +215,12 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 	tracePanel.id = 'call-trace-panel';
 	tracePanel.innerHTML = '<div class="call-trace-placeholder">点击表格中的类名或方法名，向上追溯调用链。</div>';
 	tableWrapper.appendChild(tracePanel);
+	const resizeHandle = document.createElement('div');
+	resizeHandle.className = 'table-resize-handle';
+	resizeHandle.title = '拖动调整详情表格大小';
+	tableWrapper.appendChild(resizeHandle);
 	setupVerticalResize(tableWrapper, tablePane, tracePanel, splitHandle);
+	setupPanelResize(tableWrapper, resizeHandle);
 	tableWrapper.addEventListener('click', event => {
 		event.stopPropagation();
 		const trigger = event.target.closest('.trace-link');
@@ -141,7 +238,7 @@ function createTable(packageDeps, codemap, fromComponentName, toComponentName, k
 
 function listClasses(codemap, componentName, keyword, sourceName = null) {
 	const trimRoot = componentName.replace('.[root]', '').replace('[root]', '');
-	const normalizedKeyword = keyword ? keyword.toLowerCase() : '';
+	const keywords = normalizeKeywords(keyword);
 	const classes = new Map();
 
 	for (const packet of codemap.packages || []) {
@@ -152,7 +249,7 @@ function listClasses(codemap, componentName, keyword, sourceName = null) {
 			: packet.fqn === trimRoot || packet.fqn.startsWith(trimRoot + '.');
 		if (!belongsTo) continue;
 		for (const member of packetMembers) {
-			addClassEntry(classes, packet.fqn, packet.sourceName || null, member.className, normalizedKeyword);
+			addClassEntry(classes, packet.fqn, packet.sourceName || null, member.className, keywords);
 		}
 	}
 
@@ -161,18 +258,18 @@ function listClasses(codemap, componentName, keyword, sourceName = null) {
 	}
 
 	for (const packageDep of codemap.packageDeps || []) {
-		collectClassesFromMember(packageDep.from, packageDep.memberDeps, 'from', componentName, trimRoot, normalizedKeyword, classes, sourceName);
-		collectClassesFromMember(packageDep.to, packageDep.memberDeps, 'to', componentName, trimRoot, normalizedKeyword, classes, sourceName);
+		collectClassesFromMember(packageDep.from, packageDep.memberDeps, 'from', componentName, trimRoot, keywords, classes, sourceName);
+		collectClassesFromMember(packageDep.to, packageDep.memberDeps, 'to', componentName, trimRoot, keywords, classes, sourceName);
 	}
 
 	return Array.from(classes.values()).sort((left, right) => left.fullClassName.localeCompare(right.fullClassName));
 }
 
-function collectClassesFromMember(packet, memberDeps, side, componentName, trimRoot, normalizedKeyword, classes, sourceName) {
+function collectClassesFromMember(packet, memberDeps, side, componentName, trimRoot, keywords, classes, sourceName) {
 	if (sourceName && packet.sourceName !== sourceName) return;
 	if (!belongsToComponent(componentName, trimRoot, packet.fqn)) return;
 	for (const memberDep of memberDeps || []) {
-		addClassEntry(classes, packet.fqn, packet.sourceName || null, memberDep[side].className, normalizedKeyword);
+		addClassEntry(classes, packet.fqn, packet.sourceName || null, memberDep[side].className, keywords);
 	}
 }
 
@@ -182,11 +279,11 @@ function belongsToComponent(componentName, trimRoot, packageFqn) {
 		: packageFqn === trimRoot || packageFqn.startsWith(trimRoot + '.');
 }
 
-function addClassEntry(classes, packageFqn, sourceName, className, normalizedKeyword) {
+function addClassEntry(classes, packageFqn, sourceName, className, keywords) {
 	if (!className) return;
 	const fullClassName = packageFqn ? `${packageFqn}.${className}` : className;
 	const entryKey = `${sourceName || ''}::${fullClassName}`;
-	if (normalizedKeyword && !fullClassName.toLowerCase().includes(normalizedKeyword)) return;
+	if (keywords.length > 0 && !matchesAnyKeyword([sourceName, fullClassName].filter(x => x).join(' '), keywords)) return;
 	classes.set(entryKey, {
 		packageFqn,
 		sourceName,
@@ -196,7 +293,7 @@ function addClassEntry(classes, packageFqn, sourceName, className, normalizedKey
 }
 
 function listMethods(codemap, packageFqn, className, keyword, sourceName = null) {
-	const normalizedKeyword = keyword ? keyword.toLowerCase() : '';
+	const keywords = normalizeKeywords(keyword);
 	const methods = new Set();
 
 	for (const packet of codemap.packages || []) {
@@ -204,7 +301,7 @@ function listMethods(codemap, packageFqn, className, keyword, sourceName = null)
 		if (packet.fqn !== packageFqn) continue;
 		for (const member of packet.members || []) {
 			if (member.className !== className || !isMethodName(member.memberName)) continue;
-			if (normalizedKeyword && !member.memberName.toLowerCase().includes(normalizedKeyword)) continue;
+			if (keywords.length > 0 && !matchesAnyKeyword(member.memberName, keywords)) continue;
 			methods.add(member.memberName);
 		}
 	}
@@ -214,20 +311,20 @@ function listMethods(codemap, packageFqn, className, keyword, sourceName = null)
 	}
 
 	for (const packageDep of codemap.packageDeps || []) {
-		collectMethodsFromMember(packageDep.from, packageDep.memberDeps, 'from', packageFqn, className, normalizedKeyword, methods, sourceName);
-		collectMethodsFromMember(packageDep.to, packageDep.memberDeps, 'to', packageFqn, className, normalizedKeyword, methods, sourceName);
+		collectMethodsFromMember(packageDep.from, packageDep.memberDeps, 'from', packageFqn, className, keywords, methods, sourceName);
+		collectMethodsFromMember(packageDep.to, packageDep.memberDeps, 'to', packageFqn, className, keywords, methods, sourceName);
 	}
 
 	return Array.from(methods).sort();
 }
 
-function collectMethodsFromMember(packet, memberDeps, side, packageFqn, className, normalizedKeyword, methods, sourceName) {
+function collectMethodsFromMember(packet, memberDeps, side, packageFqn, className, keywords, methods, sourceName) {
 	if (sourceName && packet.sourceName !== sourceName) return;
 	if (packet.fqn !== packageFqn) return;
 	for (const memberDep of memberDeps || []) {
 		const member = memberDep[side];
 		if (member.className !== className || !isMethodName(member.memberName)) continue;
-		if (normalizedKeyword && !member.memberName.toLowerCase().includes(normalizedKeyword)) continue;
+		if (keywords.length > 0 && !matchesAnyKeyword(member.memberName, keywords)) continue;
 		methods.add(member.memberName);
 	}
 }
@@ -297,7 +394,12 @@ function createClassList(classes, codemap, componentName, keyword) {
 		<p class="call-trace-placeholder">当前节点是叶子目录，左侧展示类清单，点击类名后在右侧查看方法清单，再点击方法名查看调用链。</p>
 	`;
 	tableWrapper.appendChild(tracePanel);
+	const resizeHandle = document.createElement('div');
+	resizeHandle.className = 'table-resize-handle';
+	resizeHandle.title = '拖动调整详情表格大小';
+	tableWrapper.appendChild(resizeHandle);
 	setupVerticalResize(tableWrapper, tablePane, tracePanel, splitHandle);
+	setupPanelResize(tableWrapper, resizeHandle);
 	tableWrapper.addEventListener('click', event => {
 		event.stopPropagation();
 		const classTrigger = event.target.closest('.class-list-link');
@@ -432,6 +534,48 @@ function setupVerticalResize(wrapper, tablePane, tracePanel, splitHandle) {
 	window.addEventListener('resize', () => {
 		const currentTraceHeight = tracePanel.getBoundingClientRect().height;
 		applyTraceHeight(currentTraceHeight);
+	});
+}
+
+function setupPanelResize(wrapper, resizeHandle) {
+	const MIN_WIDTH = 480;
+	const MIN_HEIGHT = 280;
+	let startX = 0;
+	let startY = 0;
+	let startWidth = 0;
+	let startHeight = 0;
+
+	const onPointerMove = event => {
+		const parentBox = wrapper.parentElement.getBoundingClientRect();
+		const maxWidth = Math.max(MIN_WIDTH, parentBox.width);
+		const maxHeight = Math.max(MIN_HEIGHT, parentBox.height);
+		const nextWidth = Math.min(Math.max(startWidth + event.clientX - startX, MIN_WIDTH), maxWidth);
+		const nextHeight = Math.min(Math.max(startHeight + event.clientY - startY, MIN_HEIGHT), maxHeight);
+		wrapper.style.width = `${nextWidth}px`;
+		wrapper.style.height = `${nextHeight}px`;
+	};
+
+	const onPointerUp = () => {
+		window.removeEventListener('pointermove', onPointerMove);
+		window.removeEventListener('pointerup', onPointerUp);
+		setTimeout(() => document.body.classList.remove('is-resizing-panel'), 0);
+	};
+
+	resizeHandle.addEventListener('pointerdown', event => {
+		event.preventDefault();
+		event.stopPropagation();
+		const box = wrapper.getBoundingClientRect();
+		startX = event.clientX;
+		startY = event.clientY;
+		startWidth = box.width;
+		startHeight = box.height;
+		document.body.classList.add('is-resizing-panel');
+		window.addEventListener('pointermove', onPointerMove);
+		window.addEventListener('pointerup', onPointerUp);
+	});
+	resizeHandle.addEventListener('click', event => {
+		event.preventDefault();
+		event.stopPropagation();
 	});
 }
 
@@ -711,6 +855,115 @@ function shortenPackage(packageFqn) {
 	const segments = packageFqn.split('.').filter(Boolean);
 	if (segments.length <= 2) return packageFqn;
 	return '...' + segments.slice(-2).join('.');
+}
+
+function componentFilterName(component) {
+	return component.isRootMarker
+		? `${component.packageName}.[root]`
+		: component.packageName;
+}
+
+function componentLabel(component, fallbackName) {
+	return component.label || component.packageName || fallbackName;
+}
+
+function renderExcelWorkbook(sheets) {
+	if (!sheets || sheets.length === 0) {
+		sheets = [{name: 'Dependencies', rows: []}];
+	}
+	return `\uFEFF<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+	xmlns:o="urn:schemas-microsoft-com:office:office"
+	xmlns:x="urn:schemas-microsoft-com:office:excel"
+	xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+	xmlns:html="http://www.w3.org/TR/REC-html40">
+	<Styles>
+		<Style ss:ID="header">
+			<Font ss:Bold="1"/>
+			<Interior ss:Color="#D0E0EC" ss:Pattern="Solid"/>
+		</Style>
+	</Styles>
+${sheets.map(sheet => renderExcelWorksheet(sheet.name, sheet.rows)).join('\n')}
+</Workbook>`;
+}
+
+function renderExcelWorksheet(sheetName, rows) {
+	const headers = ['From Component', 'From Class', 'From Member', 'Dependency', 'To Member', 'To Class', 'To Component'];
+	const bodyRows = rows.length > 0
+		? rows.map(row => [
+			row.fromComponent,
+			row.fromClass,
+			row.fromMember,
+			row.dependency,
+			row.toMember,
+			row.toClass,
+			row.toComponent
+		])
+		: [['No dependencies matched current view.', '', '', '', '', '', '']];
+
+	return `
+	<Worksheet ss:Name="${escapeXmlAttribute(sheetName)}">
+		<Table>
+			<Row>
+				${headers.map(header => `<Cell ss:StyleID="header"><Data ss:Type="String">${escapeXml(header)}</Data></Cell>`).join('')}
+			</Row>
+			${bodyRows.map(row => `
+				<Row>
+					${row.map(value => `<Cell><Data ss:Type="String">${escapeXml(value)}</Data></Cell>`).join('')}
+				</Row>`).join('')}
+		</Table>
+	</Worksheet>`;
+}
+
+function buildSheetName(sheetName, usedSheetNames) {
+	const baseName = sanitizeSheetName(sheetName);
+	let candidate = trimSheetName(baseName);
+	let suffixIndex = 2;
+	while (usedSheetNames.has(candidate)) {
+		const suffix = ` ${suffixIndex}`;
+		const trimmedBase = baseName.slice(0, Math.max(1, 31 - suffix.length)).trim();
+		candidate = `${trimmedBase}${suffix}`;
+		suffixIndex++;
+	}
+	usedSheetNames.add(candidate);
+	return candidate;
+}
+
+function plainText(value) {
+	const holder = document.createElement('div');
+	holder.innerHTML = value == null ? '' : String(value);
+	return holder.textContent || '';
+}
+
+function escapeXml(value) {
+	return String(value == null ? '' : value)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
+}
+
+function escapeXmlAttribute(value) {
+	return escapeXml(value)
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;');
+}
+
+function sanitizeSheetName(sheetName) {
+	const cleaned = String(sheetName == null ? '' : sheetName)
+		.replace(/\[/g, '_')
+		.replace(/\]/g, '_')
+		.replace(/:/g, '_')
+		.replace(/\*/g, '_')
+		.replace(/\?/g, '_')
+		.replace(/\//g, '_')
+		.replace(/\\/g, '_')
+		.trim();
+	return cleaned || 'Sheet1';
+}
+
+function trimSheetName(sheetName) {
+	return sheetName.length > 31 ? sheetName.slice(0, 31) : sheetName;
 }
 
 function fromPackageAndClassName(packageDep, memberDep) {

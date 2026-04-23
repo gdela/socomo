@@ -6,8 +6,9 @@
 
 import './main.scss';
 import drawDiagram from './diagram';
-import drawTable, {drawClassList} from './table';
+import drawTable, {buildDependencyExport, drawClassList} from './table';
 import Mousetrap from 'mousetrap';
+import saveAs from 'file-saver';
 
 function socomo() {
 
@@ -36,8 +37,12 @@ function socomo() {
 			</div>
 		</div>
 		<div id="search-container">
-			<input type="text" id="search-input" placeholder="search">
-			<button id="search-button">搜索</button>
+			<div id="search-controls">
+				<input type="text" id="search-input" placeholder="search">
+				<button id="search-button">搜索</button>
+				<button id="export-button" type="button">导出</button>
+			</div>
+			<div id="keyword-status"></div>
 		</div>
 	</div>
 	<div id="content-container">
@@ -49,24 +54,38 @@ function socomo() {
 	const mainTable = document.getElementById('main-table');
 	const searchInput = document.getElementById('search-input');
 	const searchButton = document.getElementById('search-button');
+	const exportButton = document.getElementById('export-button');
+	const keywordStatus = document.getElementById('keyword-status');
 	const levelUpButton = document.getElementById('level-up-button');
 	const expandAllButton = document.getElementById('expand-all-button');
 	const breadcrumb = document.getElementById('breadcrumb');
 	const headerToggleButton = document.getElementById('header-toggle-button');
 
 	let currentDiagram;
-	let currentKeyword = '';
+	let currentKeywords = [];
+	let currentDisplayedLevel = initialLevel;
 	let headerCollapsed = false;
 	let codemapSynchronized = hasCodemap();
 	const expandedLevels = [];
+	let searchExpandedLevels = [];
 
 	renderCurrentLevel();
 	waitForCodemap();
 
 	function renderCurrentLevel() {
+		const activeKeywords = getActiveKeywords();
 		updateNavigation();
-		const baseLevel = buildExpandedLevel(getCodemap(), rootLevelName, expandedLevels, initialLevel);
-		const displayedLevel = filterLevel(baseLevel, getCodemap(), currentKeyword, expandedLevels);
+		const effectiveExpandedLevels = mergeExpandedLevels(expandedLevels, searchExpandedLevels);
+		const baseLevel = buildExpandedLevel(getCodemap(), rootLevelName, effectiveExpandedLevels, initialLevel);
+		const displayedLevel = currentKeywords.length > 0 && activeKeywords.length === 0
+			? {
+				level: baseLevel.level,
+				groups: {},
+				components: {},
+				dependencies: {}
+			}
+			: filterLevel(baseLevel, getCodemap(), activeKeywords, effectiveExpandedLevels);
+		currentDisplayedLevel = displayedLevel;
 		doLongTask(() => {
 			if (currentDiagram) {
 				currentDiagram.updateLevel(displayedLevel);
@@ -290,35 +309,55 @@ function socomo() {
 		};
 	}
 
-	function filterLevel(originalLevel, codemap, keyword) {
-		if (!keyword || !codemap) return originalLevel;
+	function filterLevel(originalLevel, codemap, keywords) {
+		if (!keywords.length || !codemap) return originalLevel;
 
-		const normalizedKeyword = keyword.toLowerCase();
 		const coverageIndex = buildCoverageIndex(originalLevel.components);
 		const matchedPairs = new Set();
 		const componentSet = new Set();
 
 		for (const [componentName, component] of Object.entries(originalLevel.components)) {
 			if (
-				matchesKeyword(componentName, normalizedKeyword) ||
-				matchesKeyword(component.label, normalizedKeyword) ||
-				matchesKeyword(component.packageName, normalizedKeyword)
+				matchesAnyKeyword(componentName, keywords) ||
+				matchesAnyKeyword(component.label, keywords) ||
+				matchesAnyKeyword(component.packageName, keywords)
 			) {
 				componentSet.add(componentName);
 			}
 		}
 
-		for (const pkg of codemap.packageDeps) {
+		for (const packet of codemap.packages || []) {
+			const packetMatched =
+				matchesAnyKeyword(packet.fqn, keywords) ||
+				matchesAnyKeyword(packet.sourceName, keywords);
+			for (const member of packet.members || []) {
+				if (
+					packetMatched ||
+					matchesAnyKeyword(member.className, keywords) ||
+					matchesAnyKeyword(member.memberName, keywords)
+				) {
+					const component = mapPackageToVisibleComponent(packet, coverageIndex);
+					if (component) {
+						componentSet.add(component.name);
+					}
+					break;
+				}
+			}
+		}
+
+		for (const pkg of codemap.packageDeps || []) {
 			const packageMatched =
-				matchesKeyword(pkg.from.fqn, normalizedKeyword) ||
-				matchesKeyword(pkg.to.fqn, normalizedKeyword);
-			for (const memberDep of pkg.memberDeps) {
+				matchesAnyKeyword(pkg.from.fqn, keywords) ||
+				matchesAnyKeyword(pkg.to.fqn, keywords) ||
+				matchesAnyKeyword(pkg.from.sourceName, keywords) ||
+				matchesAnyKeyword(pkg.to.sourceName, keywords);
+			for (const memberDep of pkg.memberDeps || []) {
 				if (
 					packageMatched ||
-					matchesKeyword(memberDep.from.className, normalizedKeyword) ||
-					matchesKeyword(memberDep.from.memberName, normalizedKeyword) ||
-					matchesKeyword(memberDep.to.className, normalizedKeyword) ||
-					matchesKeyword(memberDep.to.memberName, normalizedKeyword)
+					matchesAnyKeyword(memberDep.from.className, keywords) ||
+					matchesAnyKeyword(memberDep.from.memberName, keywords) ||
+					matchesAnyKeyword(memberDep.to.className, keywords) ||
+					matchesAnyKeyword(memberDep.to.memberName, keywords)
 				) {
 					const compFrom = mapPackageToVisibleComponent(pkg.from, coverageIndex);
 					const compTo = mapPackageToVisibleComponent(pkg.to, coverageIndex);
@@ -367,8 +406,8 @@ function socomo() {
 	}
 
 	function performSearch() {
-		currentKeyword = searchInput.value.trim();
-		renderCurrentLevel();
+		currentKeywords = parseSearchKeywords(searchInput.value);
+		updateSearchState();
 	}
 
 	function waitForCodemap() {
@@ -379,7 +418,7 @@ function socomo() {
 				return;
 			}
 			codemapSynchronized = true;
-			renderCurrentLevel();
+			updateSearchState();
 		};
 		window.setTimeout(synchronize, 50);
 	}
@@ -387,6 +426,14 @@ function socomo() {
 	searchButton.addEventListener('click', performSearch);
 	searchInput.addEventListener('keydown', event => {
 		if (event.key === 'Enter') performSearch();
+	});
+	exportButton.addEventListener('click', () => {
+		if (!hasCodemap()) {
+			console.warn('socomo.data not yet loaded or completely missing');
+			return;
+		}
+		const workbook = buildDependencyExport(getCodemap(), currentDisplayedLevel, getActiveKeywords());
+		saveAs(new Blob([workbook.content], {type: 'application/vnd.ms-excel;charset=utf-8'}), workbook.filename);
 	});
 	headerToggleButton.addEventListener('click', () => {
 		headerCollapsed = !headerCollapsed;
@@ -427,7 +474,7 @@ function socomo() {
 	function onDependencySelected(fromComponent, toComponent, fromSourceName, toSourceName) {
 		if (hasCodemap()) {
 			console.info('selected dependency %s -> %s', fromComponent, toComponent);
-			drawTable(mainTable, getCodemap(), fromComponent, toComponent, currentKeyword, fromSourceName, toSourceName);
+			drawTable(mainTable, getCodemap(), fromComponent, toComponent, getActiveKeywords(), fromSourceName, toSourceName);
 			mainTable.style.display = 'flex';
 		} else {
 			console.warn('socomo.data not yet loaded or completely missing');
@@ -443,7 +490,7 @@ function socomo() {
 
 		if (isRootMarker) {
 			const rootComponentName = packageName ? `${packageName}.[root]` : '[root]';
-			drawClassList(mainTable, getCodemap(), rootComponentName, currentKeyword, sourceName);
+			drawClassList(mainTable, getCodemap(), rootComponentName, getActiveKeywords(), sourceName);
 			mainTable.style.display = 'flex';
 			return;
 		}
@@ -451,7 +498,7 @@ function socomo() {
 
 		const absoluteLevel = packageName;
 		if (!hasChildPackages(getCodemap(), absoluteLevel, sourceName)) {
-			drawClassList(mainTable, getCodemap(), absoluteLevel, currentKeyword, sourceName);
+			drawClassList(mainTable, getCodemap(), absoluteLevel, getActiveKeywords(), sourceName);
 			mainTable.style.display = 'flex';
 			return;
 		}
@@ -498,8 +545,168 @@ function socomo() {
 		return Array.from(levels).sort();
 	}
 
+	function collectSearchExpansionLevels(codemap, levelName, keywords) {
+		if (!codemap || !codemap.packages || !keywords.length) return [];
+		const levels = new Set();
+		for (const packet of codemap.packages) {
+			const packetMatched = matchesAnyKeyword(packet.fqn, keywords);
+			const memberMatched = (packet.members || []).some(member =>
+				matchesAnyKeyword(member.className, keywords) ||
+				matchesAnyKeyword(member.memberName, keywords)
+			);
+			if (!packetMatched && !memberMatched) continue;
+			addExpansionPathForPacket(codemap, levelName, packet, levels);
+		}
+		for (const packageDep of codemap.packageDeps || []) {
+			if (dependencyMatchesKeyword(packageDep, keywords)) {
+				addExpansionPathForPacket(codemap, levelName, packageDep.from, levels);
+				addExpansionPathForPacket(codemap, levelName, packageDep.to, levels);
+			}
+		}
+		return Array.from(levels).sort();
+	}
+
+	function addExpansionPathForPacket(codemap, levelName, packet, levels) {
+		const rootPrefix = levelName === '' ? '' : (levelName + '.');
+		if (packet.fqn === levelName || !packet.fqn.startsWith(rootPrefix)) return;
+		const suffix = packet.fqn.slice(rootPrefix.length);
+		const segments = suffix.split('.').filter(Boolean);
+		const pathSegments = [];
+		for (const segment of segments) {
+			pathSegments.push(segment);
+			const absoluteLevel = appendLevel(levelName, pathSegments.join('.'));
+			const sourceName = shouldSplitPackageTreeBySource(codemap, absoluteLevel) ? packet.sourceName : null;
+			if (hasChildPackages(codemap, absoluteLevel, sourceName)) {
+				levels.add(expandedLevelKey(absoluteLevel, sourceName));
+			}
+		}
+	}
+
+	function dependencyMatchesKeyword(packageDep, keywords) {
+		if (
+			matchesAnyKeyword(packageDep.from.fqn, keywords) ||
+			matchesAnyKeyword(packageDep.to.fqn, keywords) ||
+			matchesAnyKeyword(packageDep.from.sourceName, keywords) ||
+			matchesAnyKeyword(packageDep.to.sourceName, keywords)
+		) {
+			return true;
+		}
+		return (packageDep.memberDeps || []).some(memberDep =>
+			matchesAnyKeyword(memberDep.from.className, keywords) ||
+			matchesAnyKeyword(memberDep.from.memberName, keywords) ||
+			matchesAnyKeyword(memberDep.to.className, keywords) ||
+			matchesAnyKeyword(memberDep.to.memberName, keywords)
+		);
+	}
+
+	function parseSearchKeywords(searchText) {
+		const keywords = [];
+		const seen = new Set();
+		for (const rawKeyword of String(searchText || '').split(/[\s,，;；]+/)) {
+			const raw = rawKeyword.trim();
+			if (!raw) continue;
+			const normalized = raw.toLowerCase();
+			if (seen.has(normalized)) continue;
+			seen.add(normalized);
+			keywords.push({raw, normalized, enabled: true});
+		}
+		return keywords;
+	}
+
+	function getActiveKeywords() {
+		return currentKeywords.filter(keyword => keyword.enabled !== false);
+	}
+
+	function updateSearchState() {
+		const activeKeywords = getActiveKeywords();
+		searchExpandedLevels = activeKeywords.length
+			? collectSearchExpansionLevels(getCodemap(), rootLevelName, activeKeywords)
+			: [];
+		updateKeywordStatus();
+		renderCurrentLevel();
+	}
+
+	function updateKeywordStatus() {
+		keywordStatus.innerHTML = '';
+		if (!currentKeywords.length) return;
+		const hitCounts = countKeywordHits(getCodemap(), currentKeywords);
+		for (const keyword of currentKeywords) {
+			const count = hitCounts.get(keyword.normalized) || 0;
+			const tag = document.createElement('button');
+			tag.type = 'button';
+			tag.className = `keyword-status-tag ${count > 0 ? 'hit' : 'miss'} ${keyword.enabled === false ? 'inactive' : 'active'}`;
+			tag.title = count > 0
+				? (keyword.enabled === false ? `当前未参与过滤，命中 ${count} 条记录` : `当前参与过滤，命中 ${count} 条记录`)
+				: '没有命中记录';
+			tag.textContent = `${keyword.raw}: ${count > 0 ? count : '未命中'}`;
+			tag.addEventListener('click', () => {
+				keyword.enabled = keyword.enabled === false;
+				updateSearchState();
+			});
+			keywordStatus.appendChild(tag);
+		}
+	}
+
+	function countKeywordHits(codemap, keywords) {
+		const hits = new Map(keywords.map(keyword => [keyword.normalized, new Set()]));
+		if (!codemap) return new Map(keywords.map(keyword => [keyword.normalized, 0]));
+
+		for (const packet of codemap.packages || []) {
+			addKeywordHit(hits, keywords, [packet.sourceName, packet.fqn].filter(x => x).join(' '), `pkg:${packet.sourceName || ''}:${packet.fqn}`);
+			for (const member of packet.members || []) {
+				addKeywordHit(
+					hits,
+					keywords,
+					[packet.sourceName, member.className, member.memberName].filter(x => x).join('.'),
+					`member:${packet.sourceName || ''}:${packet.fqn}:${member.className || ''}:${member.memberName || ''}`
+				);
+			}
+		}
+		for (const packageDep of codemap.packageDeps || []) {
+			addKeywordHit(
+				hits,
+				keywords,
+				[packageDep.from.sourceName, packageDep.from.fqn, packageDep.to.sourceName, packageDep.to.fqn].filter(x => x).join(' -> '),
+				`dep:${packageDep.from.sourceName || ''}:${packageDep.from.fqn}->${packageDep.to.sourceName || ''}:${packageDep.to.fqn}`
+			);
+			for (const memberDep of packageDep.memberDeps || []) {
+				addKeywordHit(
+					hits,
+					keywords,
+					[
+						packageDep.from.sourceName,
+						memberDep.from.className,
+						memberDep.from.memberName,
+						packageDep.to.sourceName,
+						memberDep.to.className,
+						memberDep.to.memberName
+					].filter(x => x).join(' -> '),
+					`memberDep:${packageDep.from.sourceName || ''}:${packageDep.from.fqn}:${memberDep.from.className || ''}:${memberDep.from.memberName || ''}->${packageDep.to.sourceName || ''}:${packageDep.to.fqn}:${memberDep.to.className || ''}:${memberDep.to.memberName || ''}`
+				);
+			}
+		}
+
+		return new Map(Array.from(hits.entries()).map(([keyword, records]) => [keyword, records.size]));
+	}
+
+	function addKeywordHit(hits, keywords, value, recordKey) {
+		for (const keyword of keywords) {
+			if (matchesKeyword(value, keyword.normalized)) {
+				hits.get(keyword.normalized).add(recordKey);
+			}
+		}
+	}
+
+	function matchesAnyKeyword(value, keywords) {
+		return keywords.some(keyword => matchesKeyword(value, keyword.normalized));
+	}
+
 	function matchesKeyword(value, normalizedKeyword) {
-		return value != null && value.toLowerCase().includes(normalizedKeyword);
+		return value != null && String(value).toLowerCase().includes(normalizedKeyword);
+	}
+
+	function mergeExpandedLevels(primaryLevels, secondaryLevels) {
+		return Array.from(new Set([...primaryLevels, ...secondaryLevels]));
 	}
 
 	function findSourceNameForPackageTree(codemap, packageFqn) {
@@ -629,6 +836,7 @@ function socomo() {
 		mainTable.style.display = 'none';
 	});
 	mainTable.addEventListener('click', event => {
+		if (document.body.classList.contains('is-resizing-panel')) return;
 		if (event.target !== mainTable) return;
 		mainTable.style.display = 'none';
 	});

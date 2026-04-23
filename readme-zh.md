@@ -22,7 +22,9 @@ Socomo 是一个简单的工具，用于可视化你的源代码组成，并跟�
 [socomo of guava]: https://gdela.pl/socomo-of-guava/socomo.html
 
 
-## 快速开始
+## 使用指南
+
+### 快速开始
 
 现在就在你的代码上试试！对于用 Maven 构建的项目，执行以下命令：
 
@@ -62,6 +64,15 @@ java -jar socomo-standalone.jar --local-assets app.jar common.jar
 - `cytoscape-klay.js`
 
 要跟踪组成的变化，将 `socomo.html` 文件提交到你的源代码仓库，并添加[socomo maven 插件](#socomo-maven-plugin)到你的项目。每当组成发生变化时，插件会更新这个人类可读的文件，这样你就可以在最方便的地方——源代码仓库中拥有变化历史。
+
+### 生成文件
+
+Socomo 通常会生成：
+
+- `socomo.html`：交互式查看页面入口
+- `socomo.data`：页面异步加载的详细代码映射数据
+
+如果你使用 `--local-assets`，还需要把上面列出的 js/css 文件与 `socomo.html` 放在同一目录。
 
 
 ## 如何阅读图表
@@ -164,18 +175,7 @@ java -jar socomo-standalone-*.jar --local-assets app.jar common.jar
 | 2.4.x  | 从 8 到 23       | 至少 3.2.5    |
 | 2.3.x  | 从 7 到 15       | 至少 3.2.5    |
 
-如果你使用其他构建工具，如 Gradle 或 Sbt，你可以使用[socomo 独立版](#socomo-standalone)，或者你可以编写插件并贡献给这个项目。
-
-## 贡献
-
-提出[问题或增强请求](https://github.com/gdela/socomo/issues)，或者更好的是[拉取请求](https://github.com/gdela/socomo/pulls)。通过 [wojciech@gdela.pl]() 或 [@WojciechGdela](https://twitter.com/WojciechGdela) 联系我。
-
-要开发 Socomo，你需要在机器上安装[Maven]和[Node/Npm]。然后：
-1. 运行 `mvn install` 以在本地 Maven 仓库中安装 Socomo 的快照版本。
-2. 使用[socomo maven 插件](#socomo-maven-plugin)与快照版本，或从 `socomo-core/target` 目录使用[socomo 独立版](#socomo-standalone)来生成 `socomo.html` 文件。
-3. 可选地，你可以使用 `dogfood.sh` 或 `catfood.sh` 脚本，它们一次执行上述两个步骤。
-4. 运行 `npm --prefix socomo-view run serve` 以开始服务 `*.js` 和 `*.css` 资产文件。
-5. 在浏览器中打开生成的 `socomo.html` 文件。资产可以在原地开发，浏览器会自动重新加载它们。
+如果你使用其他构建工具，如 Gradle 或 Sbt，可以直接使用[socomo 独立版](#socomo-standalone)。
 
 
 ## 替代品
