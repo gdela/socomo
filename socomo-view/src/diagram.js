@@ -9,50 +9,40 @@ import saveAs from 'file-saver';
 
 export default drawDiagram;
 
-function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
+const TOP_LEVEL_GAP = 36;
 
-	const nodes = Object.entries(level.components).map(([componentName, props]) => {
-		return {data: {id: componentName, size: props.size}}; // cytoscape node format
-	});
+function drawDiagram(diagramContainer, level, dependencySelectedHandler, componentSelectedHandler) {
+	let currentLevel = level;
 
-	const edges = Object.entries(level.dependencies).map(([dependencyName, props]) => {
-		const [from, to] = dependencyName.split(' -> ');
-		return {data: {source: from, target: to, strength: props.strength}}; // cytoscape edge format
-	});
+	let cy;
 
 	// draw the diagram
-	const cy = cytoscape({
+	cy = cytoscape({
 		container: diagramContainer,
 		style: diagramStyle,
 		layout: diagramLayout,
 		boxSelectionEnabled: true,
 		selectionType: 'additive',
 		wheelSensitivity: 0.1,
-		elements: {nodes, edges}
+		elements: buildElements(currentLevel)
 	});
-	cy.ready(diagramZooming);
+	cy.ready(event => {
+		resolveTopLevelSpacing(event.cy);
+		diagramZooming(event);
+	});
 	cy.on('resize', diagramZooming);
-
-	// mark upwards dependencies as violations
-	const upwardDependency = edge => edge.target().position('y') < edge.source().position('y');
-	cy.edges().filter(upwardDependency).addClass('violation');
-	cy.on('drag', 'node', event => {
-		const node = event.target;
-		node.connectedEdges('.violation').removeClass('violation');
-		node.connectedEdges().filter(upwardDependency).addClass('violation');
-	});
 
 	// highlighting on node hover (highlight single component and all its direct neighbour components)
 	cy.on('mouseover', 'node', event => {
 		const node = event.target;
-		cy.elements().subtract(node.outgoers()).subtract(node.incomers()).subtract(node).addClass('hushed');
+		if (node.isParent()) return;
 		node.addClass('highlight');
 		node.outgoers().addClass('highlight-outgoer');
 		node.incomers().addClass('highlight-ingoer');
 	});
 	cy.on('mouseout', 'node', event => {
 		const node = event.target;
-		cy.elements().removeClass('hushed');
+		if (node.isParent()) return;
 		node.removeClass('highlight');
 		node.outgoers().removeClass('highlight-outgoer');
 		node.incomers().removeClass('highlight-ingoer');
@@ -109,18 +99,30 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 	// invoke dependency selected handler on edge click
 	cy.on('tap', 'edge', event => {
 		const edge = event.target;
-		const prefix = level.level !== '' ? (level.level + '.') : '';
 		dependencySelectedHandler(
-			prefix + edge.source().id(),
-			prefix + edge.target().id()
+			edge.source().data('packageName'),
+			edge.target().data('packageName'),
+			edge.source().data('sourceName') || null,
+			edge.target().data('sourceName') || null
 		);
+	});
+
+	cy.on('tap', 'node', event => {
+		if (!componentSelectedHandler) return;
+		if (event.target.isParent() && !clickedGroupHeader(event)) return;
+		componentSelectedHandler(
+			event.target.data('packageName'),
+			event.target.data('isRootMarker') === true,
+			event.target.data('sourceName') || null
+		);
+		if (event.target.isParent()) {
+			event.target.unselect();
+		}
 	});
 
 	// rearranging nodes according to standard diagram layout
 	Mousetrap.bind('r', () => {
 		doLongTask(() => {
-			const refreshViolations = () => cy.nodes().emit('drag');
-			const refreshIntervalId = setInterval(refreshViolations, 100);
 			const layout = cy.layout({
 				...diagramLayout,
 				animate: true,
@@ -128,8 +130,8 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 				animationEasing: 'ease-in-out-cubic'
 			});
 			layout.on('layoutstop', () => {
-				clearInterval(refreshIntervalId);
-				refreshViolations();
+				resolveTopLevelSpacing(cy);
+				diagramZooming({cy});
 			});
 			layout.run();
 		});
@@ -150,6 +152,147 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
 		// the delay is to give browser a chance to render dom changes done so far
 		setTimeout(() => { task(); diagramContainer.style.cursor = ''; }, 30);
 	}
+
+	function updateLevel(nextLevel) {
+		currentLevel = nextLevel;
+		const previousPositions = new Map();
+		cy.nodes().forEach(node => {
+			previousPositions.set(node.id(), {...node.position()});
+		});
+		const previousPan = cy.pan();
+		const previousZoom = cy.zoom();
+
+		const targetElements = buildElements(nextLevel);
+		const targetById = new Map(targetElements.nodes.map(node => [node.data.id, node]));
+
+		cy.batch(() => {
+			cy.edges().remove();
+
+			cy.nodes().forEach(node => {
+				if (!targetById.has(node.id())) {
+					node.remove();
+				}
+			});
+
+			for (const element of targetElements.nodes) {
+				const existing = cy.getElementById(element.data.id);
+				if (existing.nonempty()) {
+					existing.data('label', element.data.label);
+					existing.data('packageName', element.data.packageName);
+					existing.data('isGroup', element.data.isGroup === true);
+					existing.data('isRootMarker', element.data.isRootMarker === true);
+					existing.data('isLeaf', element.data.isLeaf === true);
+					existing.data('sourceName', element.data.sourceName || null);
+					existing.classes(element.classes || '');
+					moveNode(existing, element.data.parent);
+					continue;
+				}
+
+				const added = cy.add(element);
+				const initialPosition = initialNodePosition(element.data, cy, previousPositions);
+				if (initialPosition) {
+					added.position(initialPosition);
+				}
+			}
+
+			for (const element of targetElements.edges) {
+				cy.add(element);
+			}
+		});
+
+		const layout = cy.layout({
+			...diagramLayout,
+			animate: true,
+			animationDuration: 420,
+			animationEasing: 'ease-in-out-cubic',
+			fit: false
+		});
+		layout.on('layoutstop', () => {
+			resolveTopLevelSpacing(cy);
+			cy.zoom(previousZoom);
+			cy.pan(previousPan);
+		});
+		layout.run();
+	}
+
+	function refreshContainerGeometry() {
+		cy.resize();
+	}
+
+	return {
+		cy,
+		updateLevel,
+		refreshContainerGeometry,
+		destroy: () => cy.destroy()
+	};
+}
+
+function buildElements(level) {
+	const groups = Object.entries(level.groups || {}).map(([groupName, props]) => ({
+		data: {
+			id: 'group:' + groupName,
+			label: props.label,
+			packageName: props.packageName,
+			sourceName: props.sourceName || null,
+			isGroup: true,
+			parent: props.parentGroupName ? ('group:' + props.parentGroupName) : undefined
+		}
+	}));
+
+	const nodes = Object.entries(level.components).map(([componentName, props]) => ({
+		classes: props.isLeaf === true ? 'leaf-node' : '',
+		data: {
+			id: componentName,
+			label: props.label || componentName,
+			size: props.size,
+			packageName: props.packageName,
+			sourceName: props.sourceName || null,
+			isRootMarker: props.isRootMarker === true,
+			isLeaf: props.isLeaf === true,
+			parent: props.group ? ('group:' + props.group.name) : undefined
+		}
+	}));
+
+	const edges = Object.entries(level.dependencies).map(([dependencyName, props]) => {
+		const [from, to] = dependencyName.split(' -> ');
+		return {
+			data: {
+				id: 'edge:' + from + '->' + to,
+				source: from,
+				target: to,
+				strength: props.strength
+			}
+		};
+	});
+
+	return {nodes: [...groups, ...nodes], edges};
+}
+
+function moveNode(node, targetParentId) {
+	const currentParent = node.parent().nonempty() ? node.parent().id() : undefined;
+	if (currentParent === targetParentId) return;
+	node.move({parent: targetParentId});
+}
+
+function initialNodePosition(data, cy, previousPositions) {
+	if (previousPositions.has(data.id)) {
+		return previousPositions.get(data.id);
+	}
+
+	const parentId = data.parent;
+	if (parentId) {
+		const parent = cy.getElementById(parentId);
+		if (parent.nonempty()) {
+			const position = parent.position();
+			const siblingCount = parent.children().length;
+			return {
+				x: position.x + Math.min(40, siblingCount * 8),
+				y: position.y + 36 + Math.min(30, siblingCount * 6)
+			};
+		}
+	}
+
+	return null;
 }
 
 
@@ -158,4 +301,121 @@ function drawDiagram(diagramContainer, level, dependencySelectedHandler) {
  */
 function happenedOnBackground(event) {
 	return event.target === event.cy;
+}
+
+function clickedGroupHeader(event) {
+	const node = event.target;
+	if (!node.isParent()) return false;
+	const renderedPosition = event.renderedPosition || event.position;
+	const renderedBox = node.renderedBoundingBox();
+	const headerHeight = 28;
+	return renderedPosition.y <= renderedBox.y1 + headerHeight;
+}
+
+function resolveTopLevelSpacing(cy) {
+	resolveSiblingSpacing(cy, cy.nodes().filter(node => node.parent().empty()));
+	cy.nodes(':parent').forEach(parent => {
+		resolveSiblingSpacing(cy, parent.children());
+	});
+}
+
+function resolveSiblingSpacing(cy, siblings) {
+	const movable = siblings.filter(node => node.nonempty && node.nonempty());
+	if (movable.length <= 1) return;
+	for (let i = 0; i < 6; i++) {
+		let moved = false;
+		for (let leftIndex = 0; leftIndex < movable.length; leftIndex++) {
+			for (let rightIndex = leftIndex + 1; rightIndex < movable.length; rightIndex++) {
+				const left = movable[leftIndex];
+				const right = movable[rightIndex];
+				const adjustment = spacingAdjustment(left, right, TOP_LEVEL_GAP);
+				if (!adjustment) continue;
+				shiftWithinParent(cy, left, -adjustment.dx / 2, -adjustment.dy / 2);
+				shiftWithinParent(cy, right, adjustment.dx / 2, adjustment.dy / 2);
+				moved = true;
+			}
+		}
+		if (!moved) break;
+	}
+}
+
+function shiftWithinParent(cy, node, dx, dy) {
+	if (node.parent().empty()) {
+		shiftSubtree(node, dx, dy);
+		return;
+	}
+
+	const parent = node.parent();
+	const childBoxes = parent.children().map(child =>
+		child.boundingBox({includeLabels: true, includeOverlays: false})
+	);
+	const bounds = mergeBoxes(childBoxes);
+	if (!bounds) return;
+
+	const parentBox = parent.boundingBox({includeLabels: true, includeOverlays: false});
+	const allowedLeft = parentBox.x1 - bounds.x1;
+	const allowedRight = parentBox.x2 - bounds.x2;
+	const allowedUp = parentBox.y1 - bounds.y1;
+	const allowedDown = parentBox.y2 - bounds.y2;
+
+	const clampedDx = clamp(dx, allowedLeft, allowedRight);
+	const clampedDy = clamp(dy, allowedUp, allowedDown);
+	shiftSubtree(node, clampedDx, clampedDy);
+}
+
+function spacingAdjustment(left, right, gap) {
+	const leftBox = left.boundingBox({includeLabels: true, includeOverlays: false});
+	const rightBox = right.boundingBox({includeLabels: true, includeOverlays: false});
+
+	const xDistance = edgeDistance(leftBox.x1, leftBox.x2, rightBox.x1, rightBox.x2);
+	const yDistance = edgeDistance(leftBox.y1, leftBox.y2, rightBox.y1, rightBox.y2);
+
+	const needHorizontal = xDistance < gap;
+	const needVertical = yDistance < gap;
+
+	if (!needHorizontal || !needVertical) return null;
+
+	const centerDx = center(rightBox.x1, rightBox.x2) - center(leftBox.x1, leftBox.x2);
+	const centerDy = center(rightBox.y1, rightBox.y2) - center(leftBox.y1, leftBox.y2);
+
+	if (Math.abs(centerDx) >= Math.abs(centerDy)) {
+		const direction = centerDx >= 0 ? 1 : -1;
+		return {dx: direction * (gap - xDistance), dy: 0};
+	}
+	const direction = centerDy >= 0 ? 1 : -1;
+	return {dx: 0, dy: direction * (gap - yDistance)};
+}
+
+function shiftSubtree(node, dx, dy) {
+	node.descendants().union(node).forEach(element => {
+		const position = element.position();
+		element.position({
+			x: position.x + dx,
+			y: position.y + dy
+		});
+	});
+}
+
+function edgeDistance(startA, endA, startB, endB) {
+	if (endA < startB) return startB - endA;
+	if (endB < startA) return startA - endB;
+	return 0;
+}
+
+function center(start, end) {
+	return (start + end) / 2;
+}
+
+function mergeBoxes(boxes) {
+	if (boxes.length === 0) return null;
+	return boxes.reduce((merged, box) => ({
+		x1: Math.min(merged.x1, box.x1),
+		y1: Math.min(merged.y1, box.y1),
+		x2: Math.max(merged.x2, box.x2),
+		y2: Math.max(merged.y2, box.y2)
+	}));
+}
+
+function clamp(value, min, max) {
+	return Math.min(Math.max(value, min), max);
 }

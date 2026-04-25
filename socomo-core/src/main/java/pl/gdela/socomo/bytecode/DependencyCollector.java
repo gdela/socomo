@@ -30,6 +30,17 @@ public interface DependencyCollector {
 	void markDependency(DepType type, String className, String memberName);
 
 	/**
+	 * Marks a dependency together with additional execution context.
+	 * @param type type of dependency
+	 * @param className fully qualified target class name
+	 * @param memberName target class member name, may be {@code null} if dependency is not to a specific member
+	 * @param inLoop true if the dependency was observed inside a loop body
+	 */
+	default void markDependency(DepType type, String className, String memberName, boolean inLoop) {
+		markDependency(type, className, memberName);
+	}
+
+	/**
 	 * Signals end of the source member.
 	 * @param size size of the member, roughly the number of bytecode instruction that this member consists of
 	 */

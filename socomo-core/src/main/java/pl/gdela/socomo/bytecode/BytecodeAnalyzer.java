@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +74,7 @@ public class BytecodeAnalyzer {
 		log.info("analyzing {}", dir);
 		isTrue(dir.exists(), "directory %s does not exists", dir);
 		isTrue(dir.isDirectory(), "%s is a file not a directory", dir);
-		analyzeFiles(bytecodeFiles(dir));
+		analyzeFiles(includedBytecodeFiles(dir));
 	}
 
 	/**
@@ -103,9 +104,26 @@ public class BytecodeAnalyzer {
 	}
 
 	private static boolean isBytecode(ZipEntry entry) {
-		return entry.getName().endsWith(".class")
-			&& !entry.getName().equals("package-info.class")
-			&& !entry.getName().equals("module-info.class");
+		String entryName = entry.getName();
+		return !entryName.startsWith("org/")
+			&& entryName.endsWith(".class")
+			&& !entryName.endsWith("/package-info.class")
+			&& !entryName.equals("package-info.class")
+			&& !entryName.endsWith("/module-info.class")
+			&& !entryName.equals("module-info.class");
+	}
+
+	private static Collection<File> includedBytecodeFiles(File dir) {
+		Collection<File> files = bytecodeFiles(dir);
+		List<File> included = new ArrayList<>();
+		Path basePath = dir.toPath().toAbsolutePath();
+		for (File file : files) {
+			String relativePath = basePath.relativize(file.toPath().toAbsolutePath()).toString().replace('\\', '/');
+			if (!relativePath.startsWith("org/")) {
+				included.add(file);
+			}
+		}
+		return included;
 	}
 
 	private static Collection<File> bytecodeFiles(File dir) {

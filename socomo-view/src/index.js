@@ -34,30 +34,47 @@ function loadScript(src) {
 	});
 }
 
+function resolveBootstrapBaseUrl() {
+	const scripts = Array.from(document.getElementsByTagName('script'));
+	const bootstrapScript = scripts.find(script =>
+		script.src && /\/index\.js(?:[?#].*)?$/.test(script.src)
+	);
+	if (!bootstrapScript) {
+		return '.';
+	}
+	return new URL('.', bootstrapScript.src).toString().replace(/\/$/, '');
+}
+
+function resolveAssetUrl(baseUrl, relativePath) {
+	return new URL(relativePath, baseUrl + '/').toString();
+}
+
 window.addEventListener('DOMContentLoaded', () => {
 	console.debug('loading assets');
 	document.body.className = 'loading-state';
 	document.body.innerHTML = '<div id="status-message"></div>';
-	const indexJsUrl = document.getElementsByTagName('script')[0].src;
-	const baseUrl = indexJsUrl.slice(0, indexJsUrl.lastIndexOf('/'));
+	const baseUrl = resolveBootstrapBaseUrl();
+	const assetMode = window.socomoAssetMode === 'local' ? 'local' : 'remote';
 
-	const fontsLoaded = Promise
-		.all([
-			loadStyle('https://fonts.googleapis.com/css?family=Lato:400,700'),
-			new FontFaceObserver('Lato', {weight:400}).load(),
-			new FontFaceObserver('Lato', {weight:700}).load()
-		]).catch(error => {
-			console.warn('fonts not loaded: ' + error.message);
-		});
+	const fontsLoaded = assetMode === 'local'
+		? Promise.resolve()
+		: Promise
+			.all([
+				loadStyle('https://fonts.googleapis.com/css?family=Lato:400,700'),
+				new FontFaceObserver('Lato', {weight:400}).load(),
+				new FontFaceObserver('Lato', {weight:700}).load()
+			]).catch(error => {
+				console.warn('fonts not loaded: ' + error.message);
+			});
 
 	const scriptsLoaded = Promise
 		.all([
 			// keep in sync with versions in package.json and externals declaration in webpack.config.js
-			loadScript('https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.js'),
-			loadScript('https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.js'),
-			loadScript('https://cdn.jsdelivr.net/npm/cytoscape-klay@v3.1.3/cytoscape-klay.js'),
-			loadStyle(baseUrl + '/bundle.css'),
-			loadScript(baseUrl + '/bundle.js')
+			loadScript(assetMode === 'local' ? resolveAssetUrl(baseUrl, 'cytoscape.js') : 'https://cdn.jsdelivr.net/npm/cytoscape@3.2.22/dist/cytoscape.js'),
+			loadScript(assetMode === 'local' ? resolveAssetUrl(baseUrl, 'klay.js') : 'https://cdn.jsdelivr.net/npm/klayjs@0.4.1/klay.js'),
+			loadScript(assetMode === 'local' ? resolveAssetUrl(baseUrl, 'cytoscape-klay.js') : 'https://cdn.jsdelivr.net/npm/cytoscape-klay@v3.1.3/cytoscape-klay.js'),
+			loadStyle(resolveAssetUrl(baseUrl, 'bundle.css')),
+			loadScript(resolveAssetUrl(baseUrl, 'bundle.js'))
 		]);
 
 	Promise

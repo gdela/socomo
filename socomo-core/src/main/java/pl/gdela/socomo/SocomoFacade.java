@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -52,14 +54,26 @@ public class SocomoFacade {
 	 * @param input {@code *.jar} file or directory with {@code *.class} files
 	 */
 	public void analyzeBytecode(File input) {
+		analyzeBytecode(Collections.singletonList(input));
+	}
+
+	/**
+	 * Analyzes bytecode found in given inputs.
+	 * @see BytecodeAnalyzer
+	 * @param inputs {@code *.jar} files or directories with {@code *.class} files
+	 */
+	public void analyzeBytecode(Collection<File> inputs) {
 		CodemappingCollector collector = new CodemappingCollector();
 		BytecodeAnalyzer analyzer = new BytecodeAnalyzer(collector);
-		if (input.isFile()) {
-			analyzer.analyzeJar(shorten(input));
-		} else if (input.isDirectory()) {
-			analyzer.analyzeDir(shorten(input));
-		} else {
-			throw new IllegalArgumentException(input + " is neither jar not dir");
+		for (File input : inputs) {
+			collector.enterSource(input.getName());
+			if (input.isFile()) {
+				analyzer.analyzeJar(shorten(input));
+			} else if (input.isDirectory()) {
+				analyzer.analyzeDir(shorten(input));
+			} else {
+				throw new IllegalArgumentException(input + " is neither jar not dir");
+			}
 		}
 		codemap = collector.getCodemap().select(nonSelfDepsAndFrom(MAIN));
 		log.trace("codemap:\n{}", codemap.formatted());
@@ -93,11 +107,22 @@ public class SocomoFacade {
 	 * @param dataFile the data output file that contains detailed data about analyzed code, typically named {@code socomo.data}
 	 */
 	public void visualizeInto(File htmlFile, File dataFile) {
+		visualizeInto(htmlFile, dataFile, false);
+	}
+
+	/**
+	 * Builds the composition visualizer into given files.
+	 * @param htmlFile the html output file which opened in a browser starts the visualizer, typically named {@code socomo.html}
+	 * @param dataFile the data output file that contains detailed data about analyzed code, typically named {@code socomo.data}
+	 * @param localAssets if true, generate html that loads all js/css dependencies from the same directory
+	 */
+	public void visualizeInto(File htmlFile, File dataFile, boolean localAssets) {
 		validState(level != null);
 		output = shorten(htmlFile);
 		VisualizerBuilder builder = new VisualizerBuilder();
 		builder.setModule(module);
 		builder.setLevel(level);
+		builder.setLocalAssets(localAssets);
 		builder.buildInto(output, dataFile);
 		saveDetails(dataFile);
 	}

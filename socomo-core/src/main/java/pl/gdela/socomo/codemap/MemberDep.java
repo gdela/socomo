@@ -31,9 +31,16 @@ public class MemberDep implements Comparable<MemberDep> {
 	@JsonProperty
 	DepType type;
 
+	@JsonProperty
+	boolean inLoop;
+
 	MemberDep(CodeMember from, CodeMember to) {
 		this.from = notNull(from);
 		this.to = notNull(to);
+	}
+
+	void markInLoop() {
+		inLoop = true;
 	}
 
 	@Override

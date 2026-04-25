@@ -30,12 +30,18 @@ public class VisualizerBuilder {
 
 	private Level level;
 
+	private boolean localAssets;
+
 	public void setModule(Module module) {
 		this.module = module;
 	}
 
 	public void setLevel(Level level) {
 		this.level = level;
+	}
+
+	public void setLocalAssets(boolean localAssets) {
+		this.localAssets = localAssets;
 	}
 
 	public void buildInto(File htmlFile, File dataFile) {
@@ -68,6 +74,10 @@ public class VisualizerBuilder {
 	}
 
 	private List<Asset> assets() {
+		if (localAssets) {
+			log.info("local asset mode enabled");
+			return localAssets();
+		}
 		String socomoVersion = SocomoVersion.get();
 		if (!socomoVersion.contains("SNAPSHOT")) {
 			log.debug("release version of socomo discovered");
@@ -76,6 +86,14 @@ public class VisualizerBuilder {
 			log.info("snapshot version of socomo discovered");
 			return developmentAssets(socomoVersion);
 		}
+	}
+
+	private List<Asset> localAssets() {
+		List<Asset> assets = new ArrayList<>();
+		assets.add(scriptContent("window.socomoAssetMode = 'local';"));
+		assets.add(style("./index.css"));
+		assets.add(script("./index.js"));
+		return assets;
 	}
 
 	private List<Asset> productionAssets(String socomoVersion) {

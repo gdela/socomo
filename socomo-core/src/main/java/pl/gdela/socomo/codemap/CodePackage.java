@@ -34,14 +34,24 @@ public class CodePackage implements Comparable<CodePackage> {
 	@JsonProperty
 	public final String fqn;
 
+	@JsonProperty
+	public String sourceName;
+
 	private final Map<String, CodeMember> members = new TreeMap<>();
 
 	CodePackage(String fqn) {
 		this.fqn = notNull(fqn);
 	}
 
+	@JsonProperty
 	public Collection<CodeMember> members() {
 		return members.values();
+	}
+
+	void markSourceName(String sourceName) {
+		if (this.sourceName == null) {
+			this.sourceName = sourceName;
+		}
 	}
 
 	/**
@@ -76,6 +86,7 @@ public class CodePackage implements Comparable<CodePackage> {
 	 * meaning, so can be used only to relatively compare sizes of two packages, and
 	 * this comparision should match an average opinion of a human developer.
 	 */
+	@JsonProperty
 	public int size() {
 		Set<String> classes = new HashSet<>();
 		for (CodeMember member : members.values()) {

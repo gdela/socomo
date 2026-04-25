@@ -93,4 +93,19 @@ public class SocomoSmokeTest {
 			.isArray()
 			.isNotEmpty();
 	}
+
+	@Test
+	public void local_asset_mode() {
+		// when
+		socomo.analyzeBytecode(input);
+		socomo.chooseLevel("pl.gdela.socomo");
+		socomo.visualizeInto(outputHtml, outputData, true);
+
+		// then
+		assertThat(contentOf(outputHtml))
+			.contains("window.socomoAssetMode = 'local';")
+			.contains("link href='./index.css'")
+			.contains("script src='./index.js'")
+			.contains("script src='" + outputData.getName() + "' async");
+	}
 }

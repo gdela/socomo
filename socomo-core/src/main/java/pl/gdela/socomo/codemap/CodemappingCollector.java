@@ -16,12 +16,18 @@ public class CodemappingCollector implements DependencyCollector {
 	private CodePackage currentPackage;
 	private String currentClassName;
 	private CodeMember currentMember;
+	private String currentSourceName;
+
+	public void enterSource(String sourceName) {
+		currentSourceName = sourceName;
+	}
 
 	@Override
 	public void enterClass(String classFqn) {
 		String packageFqn = extractPackageFqn(classFqn);
 		currentClassName = extractClassName(classFqn);
 		currentPackage = codemap.packet(packageFqn);
+		currentPackage.markSourceName(currentSourceName);
 		currentMember = currentPackage.member(currentClassName);
 		currentMember.markOrigin(MAIN);
 	}
@@ -34,6 +40,11 @@ public class CodemappingCollector implements DependencyCollector {
 
 	@Override
 	public void markDependency(DepType type, String classFqn, String classMemberName) {
+		markDependency(type, classFqn, classMemberName, false);
+	}
+
+	@Override
+	public void markDependency(DepType type, String classFqn, String classMemberName, boolean inLoop) {
 		String packageFqn = extractPackageFqn(classFqn);
 		String className = extractClassName(classFqn);
 		CodePackage packet = codemap.packet(packageFqn);
@@ -41,6 +52,9 @@ public class CodemappingCollector implements DependencyCollector {
 		PackageDep packageDep = codemap.packageDep(currentPackage, packet);
 		MemberDep memberDep = packageDep.memberDep(currentMember, member);
 		memberDep.type = type;
+		if (inLoop) {
+			memberDep.markInLoop();
+		}
 	}
 
 	@Override
